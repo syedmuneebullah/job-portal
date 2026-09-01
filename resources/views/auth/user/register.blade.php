@@ -129,6 +129,17 @@
                     @csrf
                     <input type="hidden" name="user_type" value="employer">
 
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-[#1a237e] mb-2">First Name</label>
+                            <input type="text" name="first_name" required placeholder="John" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-[#1a237e] focus:ring-2 focus:ring-[#1a237e]/10 outline-none transition-all placeholder-gray-400">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-[#1a237e] mb-2">Last Name</label>
+                            <input type="text" name="last_name" required placeholder="Doe" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-[#1a237e] focus:ring-2 focus:ring-[#1a237e]/10 outline-none transition-all placeholder-gray-400">
+                        </div>
+                    </div>
+
                     <div>
                         <label class="block text-sm font-semibold text-[#1a237e] mb-2">Company Name</label>
                         <input type="text" name="company_name" required placeholder="TechCorp Malaysia" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-[#FF7543] focus:ring-2 focus:ring-[#FF7543]/10 outline-none transition-all placeholder-gray-400">
