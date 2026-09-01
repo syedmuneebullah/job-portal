@@ -3,7 +3,7 @@
 
 <main class="bg-white min-h-screen py-16 md:py-20">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         <!-- ===== HEADER ===== -->
         <div class="text-center mb-12">
             <span class="inline-block text-xs font-semibold text-[#FF7543] bg-[#FF7543]/10 px-4 py-1.5 rounded-full uppercase tracking-wider mb-4">
@@ -19,7 +19,7 @@
 
         <!-- ===== ROLE SELECTION CARDS ===== -->
         <div id="selection-section" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-            
+
             <!-- Job Seeker Card -->
             <button type="button" onclick="showForm('seeker')" id="card-seeker" class="group relative bg-white rounded-3xl p-8 text-left border-2 border-gray-100 hover:border-[#1a237e] transition-all duration-300 shadow-sm hover:shadow-2xl hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-[#1a237e]/20">
                 <div class="absolute top-4 right-4 hidden group-hover:block text-[#1a237e]">
@@ -61,10 +61,10 @@
 
         <!-- ===== REGISTRATION FORMS (Hidden by default) ===== -->
         <div class="max-w-2xl mx-auto">
-            
+
             <!-- Job Seeker Form -->
             <div id="form-seeker" class="hidden bg-white rounded-3xl border border-gray-200 shadow-2xl shadow-gray-200/50 p-8 md:p-10">
-                
+
                 <!-- Back Button -->
                 <button type="button" onclick="hideForm()" class="inline-flex items-center gap-2 text-sm font-semibold text-[#1a237e] hover:text-[#0d1445] mb-6 transition-colors">
                     <i class="fas fa-arrow-left"></i>
@@ -75,9 +75,9 @@
                     <h2 class="text-2xl font-bold text-[#1a237e]">Job Seeker Registration</h2>
                 </div>
 
-                <form action="" method="POST" class="space-y-6">
+                <form action="{{route('auth.user.validate')}}" method="POST" class="space-y-6">
                     @csrf
-                    <input type="hidden" name="role" value="job_seeker">
+                    <input type="hidden" name="user_type" value="job_seeker">
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
@@ -114,7 +114,7 @@
 
             <!-- Hiring Form -->
             <div id="form-hiring" class="hidden bg-white rounded-3xl border border-gray-200 shadow-2xl shadow-gray-200/50 p-8 md:p-10">
-                
+
                 <!-- Back Button -->
                 <button type="button" onclick="hideForm()" class="inline-flex items-center gap-2 text-sm font-semibold text-[#FF7543] hover:text-[#E65C00] mb-6 transition-colors">
                     <i class="fas fa-arrow-left"></i>
@@ -125,9 +125,9 @@
                     <h2 class="text-2xl font-bold text-[#1a237e]">Employer Registration</h2>
                 </div>
 
-                <form action="" method="POST" class="space-y-6">
+                <form action="{{route('auth.user.validate')}}" method="POST" class="space-y-6">
                     @csrf
-                    <input type="hidden" name="role" value="employer">
+                    <input type="hidden" name="user_type" value="employer">
 
                     <div>
                         <label class="block text-sm font-semibold text-[#1a237e] mb-2">Company Name</label>
