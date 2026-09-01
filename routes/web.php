@@ -15,5 +15,6 @@ Route::get('/job/details', [HomeController::class, 'JobDetails'])->name('user.jo
 
 Route::group(['prefix' => 'auth'],function(){
    Route::get('user/register',[AuthController::class, 'registerview'])->name('auth.user.register');
+   Route::post('user/register/validate',[AuthController::class, 'register'])->name('auth.user.validate');
    Route::get('user/login',[AuthController::class, 'loginview'])->name('auth.user.login');
 });
