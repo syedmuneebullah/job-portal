@@ -35,7 +35,9 @@ class User extends Authenticatable
         'deleted_at' => 'datetime',
     ];
 
-    // Relationships
+    // ===== RELATIONSHIPS =====
+    
+    // Profile relationships
     public function employer()
     {
         return $this->hasOne(Employer::class);
@@ -51,11 +53,7 @@ class User extends Authenticatable
         return $this->hasOne(ApplicantProfile::class);
     }
 
-    public function applications()
-    {
-        return $this->hasMany(Application::class, 'applicant_id');
-    }
-
+    // Job relationships
     public function jobPosts()
     {
         return $this->hasMany(JobPost::class, 'employer_id');
@@ -66,11 +64,37 @@ class User extends Authenticatable
         return $this->hasMany(JobPost::class, 'recruiter_id');
     }
 
+    // Alias for jobPosts (for backward compatibility)
+    public function jobs()
+    {
+        return $this->hasMany(JobPost::class, 'employer_id');
+    }
+
+    // Get all jobs (employer + recruiter)
+    public function getAllJobs()
+    {
+        return JobPost::where('employer_id', $this->id)
+            ->orWhere('recruiter_id', $this->id);
+    }
+
+    // Application relationships
+    public function applications()
+    {
+        return $this->hasMany(Application::class, 'applicant_id');
+    }
+
+    public function employerApplications()
+    {
+        return $this->hasMany(Application::class, 'employer_id');
+    }
+
+    // Team relationships
     public function teamMembers()
     {
         return $this->hasMany(EmployerTeamMember::class);
     }
 
+    // Message relationships
     public function messages()
     {
         return $this->hasMany(Message::class, 'sender_id');
@@ -81,6 +105,7 @@ class User extends Authenticatable
         return $this->hasMany(Message::class, 'receiver_id');
     }
 
+    // Interview relationships
     public function interviews()
     {
         return $this->hasMany(Interview::class, 'employer_id');
@@ -96,6 +121,7 @@ class User extends Authenticatable
         return $this->hasMany(Interview::class, 'recruiter_id');
     }
 
+    // Subscription & Payment
     public function subscriptions()
     {
         return $this->hasMany(UserSubscription::class);
@@ -111,6 +137,7 @@ class User extends Authenticatable
         return $this->hasMany(Invoice::class);
     }
 
+    // Notification & Settings
     public function notifications()
     {
         return $this->hasMany(Notification::class);
@@ -131,6 +158,7 @@ class User extends Authenticatable
         return $this->hasMany(IntegrationSetting::class);
     }
 
+    // Job seeker features
     public function savedSearches()
     {
         return $this->hasMany(SavedSearch::class);
@@ -141,6 +169,7 @@ class User extends Authenticatable
         return $this->hasMany(JobAlert::class);
     }
 
+    // Resume & Reports
     public function resumeParserJobs()
     {
         return $this->hasMany(ResumeParserJob::class);
@@ -151,6 +180,7 @@ class User extends Authenticatable
         return $this->hasMany(Report::class);
     }
 
+    // Admin/Approval
     public function approvedRecruiters()
     {
         return $this->hasMany(Recruiter::class, 'approved_by');
@@ -161,13 +191,28 @@ class User extends Authenticatable
         return $this->hasMany(AuditLog::class);
     }
 
-    // Accessors
+    // ===== ACCESSORS =====
+    
     public function getFullNameAttribute()
     {
         return $this->first_name . ' ' . $this->last_name;
     }
 
-    // Scopes
+    public function getInitialsAttribute()
+    {
+        return strtoupper(substr($this->first_name, 0, 1)) . strtoupper(substr($this->last_name, 0, 1));
+    }
+
+    public function getProfilePhotoUrlAttribute()
+    {
+        if ($this->profile_photo) {
+            return asset('storage/' . $this->profile_photo);
+        }
+        return null;
+    }
+
+    // ===== SCOPES =====
+    
     public function scopeActive($query)
     {
         return $query->where('status', 'active');
@@ -191,5 +236,57 @@ class User extends Authenticatable
     public function scopePending($query)
     {
         return $query->where('status', 'pending');
+    }
+
+    public function scopeVerified($query)
+    {
+        return $query->whereNotNull('email_verified_at');
+    }
+
+    public function scopeUnverified($query)
+    {
+        return $query->whereNull('email_verified_at');
+    }
+
+    // ===== HELPER METHODS =====
+    
+    public function isEmployer()
+    {
+        return $this->user_type === 'employer';
+    }
+
+    public function isRecruiter()
+    {
+        return $this->user_type === 'recruiter';
+    }
+
+    public function isApplicant()
+    {
+        return $this->user_type === 'applicant';
+    }
+
+    public function isAdmin()
+    {
+        return $this->user_type === 'admin';
+    }
+
+    public function isActive()
+    {
+        return $this->status === 'active';
+    }
+
+    public function isPending()
+    {
+        return $this->status === 'pending';
+    }
+
+    public function isSuspended()
+    {
+        return $this->status === 'suspended';
+    }
+
+    public function isVerified()
+    {
+        return !is_null($this->email_verified_at);
     }
 }

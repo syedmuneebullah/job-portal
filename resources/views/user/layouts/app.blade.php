@@ -6,6 +6,7 @@
     <title>JobPortal · header</title>
     <!-- Tailwind via CDN + custom layer -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    
     <!-- Font Awesome (optional but adds flavour) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     @include('user.includes.styles')
