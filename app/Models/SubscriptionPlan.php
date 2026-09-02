@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class SubscriptionPlan extends Model
 {
@@ -64,6 +65,15 @@ class SubscriptionPlan extends Model
         return $query->where('target_user_type', $type);
     }
 
+    public function scopeSearch($query, $search)
+    {
+        if ($search) {
+            return $query->where('name', 'LIKE', "%{$search}%")
+                         ->orWhere('description', 'LIKE', "%{$search}%");
+        }
+        return $query;
+    }
+
     // Accessors
     public function getFormattedPriceAttribute()
     {
@@ -72,7 +82,7 @@ class SubscriptionPlan extends Model
 
     public function getBillingPeriodLabelAttribute()
     {
-        return ucfirst($this->billing_period);
+        return ucfirst(str_replace('_', ' ', $this->billing_period));
     }
 
     public function getIsFreeAttribute()
@@ -80,9 +90,49 @@ class SubscriptionPlan extends Model
         return $this->price == 0;
     }
 
-    // Mutators
-    public function setSlugAttribute($value)
+    public function getTargetUserTypeLabelAttribute()
     {
-        $this->attributes['slug'] = \Str::slug($value);
+        return ucfirst($this->target_user_type);
+    }
+
+    public function getFeaturesListAttribute()
+    {
+        if (is_array($this->features)) {
+            return $this->features;
+        }
+        return json_decode($this->features, true) ?? [];
+    }
+
+    public function getLimitsListAttribute()
+    {
+        if (is_array($this->limits)) {
+            return $this->limits;
+        }
+        return json_decode($this->limits, true) ?? [];
+    }
+
+    // Mutators
+    public function setNameAttribute($value)
+    {
+        $this->attributes['name'] = $value;
+        $this->attributes['slug'] = Str::slug($value);
+    }
+
+    public function setFeaturesAttribute($value)
+    {
+        if (is_array($value)) {
+            $this->attributes['features'] = json_encode($value);
+        } else {
+            $this->attributes['features'] = $value;
+        }
+    }
+
+    public function setLimitsAttribute($value)
+    {
+        if (is_array($value)) {
+            $this->attributes['limits'] = json_encode($value);
+        } else {
+            $this->attributes['limits'] = $value;
+        }
     }
 }

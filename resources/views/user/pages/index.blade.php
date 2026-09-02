@@ -282,227 +282,105 @@
                     Featured <span class="text-[#ff7543]">Jobs</span>
                 </h2>
                 <p class="text-gray-500 max-w-2xl mx-auto text-sm md:text-base">
-                    Discover your next career move. Handpicked opportunities from top Malaysian companies.
+                    Discover your next career move. Handpicked opportunities from top companies.
                 </p>
             </div>
 
             <!-- Job Listings Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                 
-                <!-- Job Card 1 -->
-                <div class="group bg-white rounded-2xl shadow-sm hover:shadow-xl border border-gray-100/80 hover:border-[#ff7543]/30 transition-all duration-300 p-5 md:p-6 hover:-translate-y-1">
-                    <div class="flex items-start gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-gray-100/70 flex items-center justify-center text-[#1A237E] text-xl font-bold shrink-0">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M2 20a4 4 0 0 1 4-4h12a4 4 0 0 1 4 4v2H2v-2Z"></path>
-                                <path d="M10 4a4 4 0 0 0-4 4v6h2V8a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v6h2V8a4 4 0 0 0-4-4h-4Z"></path>
-                                <circle cx="10" cy="12" r="1"></circle>
-                                <circle cx="14" cy="12" r="1"></circle>
-                            </svg>
+                @forelse($featuredJobs as $job)
+                    <!-- Job Card -->
+                    <div class="group bg-white rounded-2xl shadow-sm hover:shadow-xl border border-gray-100/80 hover:border-[#ff7543]/30 transition-all duration-300 p-5 md:p-6 hover:-translate-y-1">
+                        <div class="flex items-start gap-4">
+                            <!-- Company Logo -->
+                            <div class="w-12 h-12 rounded-xl bg-gray-100/70 flex items-center justify-center text-[#1A237E] text-xl font-bold shrink-0 overflow-hidden">
+                                @if($job->employer && $job->employer->logo)
+                                    <img src="{{ asset('storage/' . $job->employer->logo) }}" 
+                                        alt="{{ $job->employer->company_name }}" 
+                                        class="w-full h-full object-cover">
+                                @else
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M2 20a4 4 0 0 1 4-4h12a4 4 0 0 1 4 4v2H2v-2Z"></path>
+                                        <path d="M10 4a4 4 0 0 0-4 4v6h2V8a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v6h2V8a4 4 0 0 0-4-4h-4Z"></path>
+                                        <circle cx="10" cy="12" r="1"></circle>
+                                        <circle cx="14" cy="12" r="1"></circle>
+                                    </svg>
+                                @endif
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="text-base font-bold text-gray-900 truncate group-hover:text-[#ff7543] transition-colors">
+                                    <a href="{{ route('user.job.details', $job->slug ?? $job->id) }}">{{ $job->title }}</a>
+                                </h3>
+                                <p class="text-sm text-gray-500 truncate">
+                                    {{ $job->employer?->company_name ?? 'Company' }} · {{ $job->location }}
+                                </p>
+                            </div>
                         </div>
-                        <div class="flex-1 min-w-0">
-                            <h3 class="text-base font-bold text-gray-900 truncate group-hover:text-[#ff7543] transition-colors">Senior Frontend Developer</h3>
-                            <p class="text-sm text-gray-500 truncate">TechCorp MY · KL</p>
+                        
+                        <div class="mt-4 flex flex-wrap gap-1.5">
+                            @if($job->employment_type)
+                                <span class="text-xs font-medium bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full">
+                                    {{ ucfirst(str_replace('_', ' ', $job->employment_type)) }}
+                                </span>
+                            @endif
+                            
+                            @if($job->work_type)
+                                <span class="text-xs font-medium 
+                                    @if($job->work_type === 'remote') bg-blue-50 text-blue-700
+                                    @elseif($job->work_type === 'hybrid') bg-orange-50 text-orange-700
+                                    @else bg-gray-50 text-gray-700
+                                    @endif px-2.5 py-1 rounded-full">
+                                    {{ ucfirst($job->work_type) }}
+                                </span>
+                            @endif
+                            
+                            @if($job->salary_min && $job->salary_max)
+                                <span class="text-xs font-medium bg-purple-50 text-purple-700 px-2.5 py-1 rounded-full">
+                                    {{ $job->currency ?? 'RM' }} {{ number_format($job->salary_min) }}-{{ number_format($job->salary_max) }}
+                                </span>
+                            @endif
                         </div>
-                    </div>
-                    
-                    <div class="mt-4 flex flex-wrap gap-1.5">
-                        <span class="text-xs font-medium bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full">Full-time</span>
-                        <span class="text-xs font-medium bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full">Remote</span>
-                        <span class="text-xs font-medium bg-purple-50 text-purple-700 px-2.5 py-1 rounded-full">RM 8k-12k</span>
-                    </div>
-                    
-                    <div class="mt-4 flex items-center justify-between pt-4 border-t border-gray-100">
-                        <span class="text-xs text-gray-400">Posted 2 days ago</span>
-                        <a href="#" class="text-sm font-semibold text-[#ff7543] hover:text-[#B71C1C] transition-colors flex items-center gap-1">
-                            Apply Now
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path>
-                            </svg>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Job Card 2 -->
-                <div class="group bg-white rounded-2xl shadow-sm hover:shadow-xl border border-gray-100/80 hover:border-[#ff7543]/30 transition-all duration-300 p-5 md:p-6 hover:-translate-y-1">
-                    <div class="flex items-start gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-gray-100/70 flex items-center justify-center text-[#1A237E] text-xl font-bold shrink-0">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M2 20a4 4 0 0 1 4-4h12a4 4 0 0 1 4 4v2H2v-2Z"></path>
-                                <path d="M10 4a4 4 0 0 0-4 4v6h2V8a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v6h2V8a4 4 0 0 0-4-4h-4Z"></path>
-                                <circle cx="10" cy="12" r="1"></circle>
-                                <circle cx="14" cy="12" r="1"></circle>
-                            </svg>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <h3 class="text-base font-bold text-gray-900 truncate group-hover:text-[#ff7543] transition-colors">UX/UI Designer</h3>
-                            <p class="text-sm text-gray-500 truncate">DesignStudio · Penang</p>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-4 flex flex-wrap gap-1.5">
-                        <span class="text-xs font-medium bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full">Full-time</span>
-                        <span class="text-xs font-medium bg-orange-50 text-orange-700 px-2.5 py-1 rounded-full">Hybrid</span>
-                        <span class="text-xs font-medium bg-purple-50 text-purple-700 px-2.5 py-1 rounded-full">RM 5k-8k</span>
-                    </div>
-                    
-                    <div class="mt-4 flex items-center justify-between pt-4 border-t border-gray-100">
-                        <span class="text-xs text-gray-400">Posted 3 days ago</span>
-                        <a href="#" class="text-sm font-semibold text-[#ff7543] hover:text-[#B71C1C] transition-colors flex items-center gap-1">
-                            Apply Now
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path>
-                            </svg>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Job Card 3 -->
-                <div class="group bg-white rounded-2xl shadow-sm hover:shadow-xl border border-gray-100/80 hover:border-[#ff7543]/30 transition-all duration-300 p-5 md:p-6 hover:-translate-y-1">
-                    <div class="flex items-start gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-gray-100/70 flex items-center justify-center text-[#1A237E] text-xl font-bold shrink-0">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M2 20a4 4 0 0 1 4-4h12a4 4 0 0 1 4 4v2H2v-2Z"></path>
-                                <path d="M10 4a4 4 0 0 0-4 4v6h2V8a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v6h2V8a4 4 0 0 0-4-4h-4Z"></path>
-                                <circle cx="10" cy="12" r="1"></circle>
-                                <circle cx="14" cy="12" r="1"></circle>
-                            </svg>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <h3 class="text-base font-bold text-gray-900 truncate group-hover:text-[#ff7543] transition-colors">DevOps Engineer</h3>
-                            <p class="text-sm text-gray-500 truncate">CloudSystems · Selangor</p>
+                        
+                        <div class="mt-4 flex items-center justify-between pt-4 border-t border-gray-100">
+                            <span class="text-xs text-gray-400">
+                                {{ $job->created_at->diffForHumans() }}
+                            </span>
+                            <a href="{{ route('user.job.details', $job->slug ?? $job->id) }}" 
+                            class="text-sm font-semibold text-[#ff7543] hover:text-[#B71C1C] transition-colors flex items-center gap-1">
+                                Apply Now
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path>
+                                </svg>
+                            </a>
                         </div>
                     </div>
-                    
-                    <div class="mt-4 flex flex-wrap gap-1.5">
-                        <span class="text-xs font-medium bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full">Full-time</span>
-                        <span class="text-xs font-medium bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full">Remote</span>
-                        <span class="text-xs font-medium bg-purple-50 text-purple-700 px-2.5 py-1 rounded-full">RM 9k-14k</span>
-                    </div>
-                    
-                    <div class="mt-4 flex items-center justify-between pt-4 border-t border-gray-100">
-                        <span class="text-xs text-gray-400">Posted 1 week ago</span>
-                        <a href="#" class="text-sm font-semibold text-[#ff7543] hover:text-[#B71C1C] transition-colors flex items-center gap-1">
-                            Apply Now
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path>
+                @empty
+                    <!-- No Jobs Found -->
+                    <div class="col-span-full text-center py-12">
+                        <div class="flex flex-col items-center">
+                            <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                             </svg>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Job Card 4 -->
-                <div class="group bg-white rounded-2xl shadow-sm hover:shadow-xl border border-gray-100/80 hover:border-[#ff7543]/30 transition-all duration-300 p-5 md:p-6 hover:-translate-y-1">
-                    <div class="flex items-start gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-gray-100/70 flex items-center justify-center text-[#1A237E] text-xl font-bold shrink-0">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M2 20a4 4 0 0 1 4-4h12a4 4 0 0 1 4 4v2H2v-2Z"></path>
-                                <path d="M10 4a4 4 0 0 0-4 4v6h2V8a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v6h2V8a4 4 0 0 0-4-4h-4Z"></path>
-                                <circle cx="10" cy="12" r="1"></circle>
-                                <circle cx="14" cy="12" r="1"></circle>
-                            </svg>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <h3 class="text-base font-bold text-gray-900 truncate group-hover:text-[#ff7543] transition-colors">Marketing Manager</h3>
-                            <p class="text-sm text-gray-500 truncate">BrandAgency · KL</p>
+                            <p class="text-gray-500 text-lg font-medium">No jobs available</p>
+                            <p class="text-gray-400 text-sm mt-1">Please check back later for new opportunities.</p>
                         </div>
                     </div>
-                    
-                    <div class="mt-4 flex flex-wrap gap-1.5">
-                        <span class="text-xs font-medium bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full">Full-time</span>
-                        <span class="text-xs font-medium bg-orange-50 text-orange-700 px-2.5 py-1 rounded-full">Hybrid</span>
-                        <span class="text-xs font-medium bg-purple-50 text-purple-700 px-2.5 py-1 rounded-full">RM 6k-9k</span>
-                    </div>
-                    
-                    <div class="mt-4 flex items-center justify-between pt-4 border-t border-gray-100">
-                        <span class="text-xs text-gray-400">Posted 2 weeks ago</span>
-                        <a href="#" class="text-sm font-semibold text-[#ff7543] hover:text-[#B71C1C] transition-colors flex items-center gap-1">
-                            Apply Now
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path>
-                            </svg>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Job Card 5 -->
-                <div class="group bg-white rounded-2xl shadow-sm hover:shadow-xl border border-gray-100/80 hover:border-[#ff7543]/30 transition-all duration-300 p-5 md:p-6 hover:-translate-y-1">
-                    <div class="flex items-start gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-gray-100/70 flex items-center justify-center text-[#1A237E] text-xl font-bold shrink-0">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M2 20a4 4 0 0 1 4-4h12a4 4 0 0 1 4 4v2H2v-2Z"></path>
-                                <path d="M10 4a4 4 0 0 0-4 4v6h2V8a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v6h2V8a4 4 0 0 0-4-4h-4Z"></path>
-                                <circle cx="10" cy="12" r="1"></circle>
-                                <circle cx="14" cy="12" r="1"></circle>
-                            </svg>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <h3 class="text-base font-bold text-gray-900 truncate group-hover:text-[#ff7543] transition-colors">Data Analyst</h3>
-                            <p class="text-sm text-gray-500 truncate">DataInsights · Johor</p>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-4 flex flex-wrap gap-1.5">
-                        <span class="text-xs font-medium bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full">Full-time</span>
-                        <span class="text-xs font-medium bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full">Remote</span>
-                        <span class="text-xs font-medium bg-purple-50 text-purple-700 px-2.5 py-1 rounded-full">RM 5k-8k</span>
-                    </div>
-                    
-                    <div class="mt-4 flex items-center justify-between pt-4 border-t border-gray-100">
-                        <span class="text-xs text-gray-400">Posted 2 weeks ago</span>
-                        <a href="#" class="text-sm font-semibold text-[#ff7543] hover:text-[#B71C1C] transition-colors flex items-center gap-1">
-                            Apply Now
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path>
-                            </svg>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Job Card 6 -->
-                <div class="group bg-white rounded-2xl shadow-sm hover:shadow-xl border border-gray-100/80 hover:border-[#ff7543]/30 transition-all duration-300 p-5 md:p-6 hover:-translate-y-1">
-                    <div class="flex items-start gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-gray-100/70 flex items-center justify-center text-[#1A237E] text-xl font-bold shrink-0">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M2 20a4 4 0 0 1 4-4h12a4 4 0 0 1 4 4v2H2v-2Z"></path>
-                                <path d="M10 4a4 4 0 0 0-4 4v6h2V8a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v6h2V8a4 4 0 0 0-4-4h-4Z"></path>
-                                <circle cx="10" cy="12" r="1"></circle>
-                                <circle cx="14" cy="12" r="1"></circle>
-                            </svg>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <h3 class="text-base font-bold text-gray-900 truncate group-hover:text-[#ff7543] transition-colors">Product Manager</h3>
-                            <p class="text-sm text-gray-500 truncate">InnovateLabs · Penang</p>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-4 flex flex-wrap gap-1.5">
-                        <span class="text-xs font-medium bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full">Full-time</span>
-                        <span class="text-xs font-medium bg-orange-50 text-orange-700 px-2.5 py-1 rounded-full">Hybrid</span>
-                        <span class="text-xs font-medium bg-purple-50 text-purple-700 px-2.5 py-1 rounded-full">RM 10k-15k</span>
-                    </div>
-                    
-                    <div class="mt-4 flex items-center justify-between pt-4 border-t border-gray-100">
-                        <span class="text-xs text-gray-400">Posted 3 weeks ago</span>
-                        <a href="#" class="text-sm font-semibold text-[#ff7543] hover:text-[#B71C1C] transition-colors flex items-center gap-1">
-                            Apply Now
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path>
-                            </svg>
-                        </a>
-                    </div>
-                </div>
+                @endforelse
             </div>
 
             <!-- View All Jobs Button -->
-            <div class="text-center mt-10 md:mt-12">
-                <a href="#" class="inline-flex items-center gap-2 px-8 py-3.5 bg-[#1A237E] hover:bg-[#0D1445] text-white font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-[#1A237E]/20 hover:shadow-xl hover:shadow-[#1A237E]/30 hover:-translate-y-0.5">
-                    <span>View All Jobs</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path>
-                    </svg>
-                </a>
-            </div>
+            @if($featuredJobs->count() > 0 && $totalJobs > 6)
+                <div class="text-center mt-10 md:mt-12">
+                    <a href="{{ route('user.jobs.all') }}" 
+                    class="inline-flex items-center gap-2 px-8 py-3.5 bg-[#1A237E] hover:bg-[#0D1445] text-white font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-[#1A237E]/20 hover:shadow-xl hover:shadow-[#1A237E]/30 hover:-translate-y-0.5">
+                        <span>View All Jobs ({{ $totalJobs }})</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path>
+                        </svg>
+                    </a>
+                </div>
+            @endif
         </div>
     </section>
 

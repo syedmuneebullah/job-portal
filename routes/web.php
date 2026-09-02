@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EmployersController;
 use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\Admin\JobController;
+use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Employer\DashboardController as EmployerDashboard;
 use App\Http\Controllers\Employer\JobController as EmployerJob;
 
@@ -14,10 +15,12 @@ use App\Http\Controllers\Employer\JobController as EmployerJob;
 Route::get('/', [HomeController::class, 'index'])->name('user.home');
 Route::get('/swift-ai-recruit', [HomeController::class, 'Landing'])->name('user.landing');
 Route::get('/pricing', [HomeController::class, 'Pricing'])->name('user.pricing');
+Route::post('subscribe', [HomeController::class, 'subscribe'])->name('user.subscribe');
+Route::get('checkout/{plan}', [HomeController::class, 'checkout'])->name('user.checkout');
 Route::get('/about-us', [HomeController::class, 'about'])->name('user.about');
 Route::get('/contact-us', [HomeController::class, 'contact'])->name('user.contact');
 Route::get('/jobs/listings', [HomeController::class, 'JobListings'])->name('user.job.listings');
-Route::get('/job/details', [HomeController::class, 'JobDetails'])->name('user.job.details');
+Route::get('/job/details/{id}', [HomeController::class, 'JobDetails'])->name('user.job.details');
 
 // Auth routes (web)
 Route::prefix('auth')->name('auth.')->group(function () {
@@ -53,13 +56,58 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->name('admin.')->group(func
     Route::post('jobs/bulk-status', [JobController::class, 'bulkStatusUpdate'])->name('jobs.bulk-status');
     Route::get('jobs/statistics', [JobController::class, 'statistics'])->name('jobs.statistics');
     Route::get('jobs/export', [JobController::class, 'export'])->name('jobs.export');
-    Route::post('jobs/{id}/toggle-status', [JobController::class, 'toggleStatus'])->name('jobs.toggle-status');
-    Route::post('jobs/{id}/toggle-visibility', [JobController::class, 'toggleVisibility'])->name('jobs.toggle-visibility');
+    // Soft Delete Routes
+    Route::patch('jobs/{id}/restore', [JobController::class, 'restore'])->name('jobs.restore');
+    Route::delete('jobs/{id}/force-delete', [JobController::class, 'forceDelete'])->name('jobs.force-delete');
+    Route::patch('jobs/{id}/toggle-status', [JobController::class, 'toggleStatus'])->name('jobs.toggle-status');
     Route::post('jobs/{id}/duplicate', [JobController::class, 'duplicate'])->name('jobs.duplicate');
+
+    // Bulk Routes
+    Route::post('jobs/bulk-delete', [JobController::class, 'bulkDelete'])->name('jobs.bulk-delete');
+    Route::post('jobs/bulk-restore', [JobController::class, 'bulkRestore'])->name('jobs.bulk-restore');
+    Route::post('jobs/bulk-force-delete', [JobController::class, 'bulkForceDelete'])->name('jobs.bulk-force-delete');
+    Route::post('jobs/bulk-status-update', [JobController::class, 'bulkStatusUpdate'])->name('jobs.bulk-status-update');
+
+
+    Route::resource('subscription-plans', SubscriptionController::class);
+
+    // Additional Routes
+    Route::patch('subscription-plans/{id}/toggle-status', [SubscriptionController::class, 'toggleStatus'])->name('subscription-plans.toggle-status');
+    Route::post('subscription-plans/{id}/duplicate', [SubscriptionController::class, 'duplicate'])->name('subscription-plans.duplicate');
+    Route::post('subscription-plans/bulk-delete', [SubscriptionController::class, 'bulkDelete'])->name('subscription-plans.bulk-delete');
+    Route::post('subscription-plans/bulk-status', [SubscriptionController::class, 'bulkStatusUpdate'])->name('subscription-plans.bulk-status');
+
+    // ===== USER SUBSCRIPTIONS =====
+    Route::get('subscriptions', [SubscriptionController::class, 'subscriptions'])
+        ->name('subscriptions.index');
+    Route::get('subscriptions/{id}', [SubscriptionController::class, 'showSubscription'])
+        ->name('subscriptions.show');
+    Route::put('subscriptions/{id}', [SubscriptionController::class, 'updateSubscription'])
+        ->name('subscriptions.update');
+    Route::post('subscriptions/{id}/cancel', [SubscriptionController::class, 'cancelSubscription'])
+        ->name('subscriptions.cancel');
+    Route::post('subscriptions/{id}/activate', [SubscriptionController::class, 'activateSubscription'])
+        ->name('subscriptions.activate');
+    Route::post('subscriptions/{id}/extend', [SubscriptionController::class, 'extendSubscription'])
+        ->name('subscriptions.extend');
+    Route::post('subscriptions/bulk-update', [SubscriptionController::class, 'bulkSubscriptionUpdate'])
+        ->name('subscriptions.bulk-update');
 });
 
 // Employer routes (protected)
 Route::middleware(['auth:sanctum'])->prefix('employer')->name('employer.')->group(function () {
     Route::get('/dashboard', [EmployerDashboard::class, 'dashboard'])->name('dashboard');
     Route::resource('jobs', EmployerJob::class);
+    
+    // Soft Delete Routes
+    Route::patch('jobs/{id}/restore', [EmployerJob::class, 'restore'])->name('jobs.restore');
+    Route::delete('jobs/{id}/force-delete', [EmployerJob::class, 'forceDelete'])->name('jobs.force-delete');
+    Route::patch('jobs/{id}/toggle-status', [EmployerJob::class, 'toggleStatus'])->name('jobs.toggle-status');
+    Route::post('jobs/{id}/duplicate', [EmployerJob::class, 'duplicate'])->name('jobs.duplicate');
+    
+    // Bulk Routes
+    Route::post('jobs/bulk-delete', [EmployerJob::class, 'bulkDelete'])->name('jobs.bulk-delete');
+    Route::post('jobs/bulk-restore', [EmployerJob::class, 'bulkRestore'])->name('jobs.bulk-restore');
+    Route::post('jobs/bulk-force-delete', [EmployerJob::class, 'bulkForceDelete'])->name('jobs.bulk-force-delete');
+    Route::post('jobs/bulk-status-update', [EmployerJob::class, 'bulkStatusUpdate'])->name('jobs.bulk-status-update');
 });

@@ -16,14 +16,14 @@
             
             <!-- Action Buttons -->
             <div class="absolute top-4 right-4 flex items-center gap-2 z-10">
-                <a href="{{ route('employers.edit', $employer->id) }}" 
+                <a href="{{ route('admin.employers.edit', $employer->id) }}" 
                    class="inline-flex items-center gap-2 px-4 py-2 bg-[#1A237E] backdrop-blur-sm hover:bg-[#1A237E] text-white text-sm font-medium rounded-xl transition-all duration-200 border border-white/10">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                     </svg>
                     Edit Company
                 </a>
-                <a href="{{ route('employers.index') }}" 
+                <a href="{{ route('admin.employers.index') }}" 
                    class="inline-flex items-center gap-2 px-4 py-2 bg-[#1A237E] backdrop-blur-sm hover:bg-[#1A237E] text-white text-sm font-medium rounded-xl transition-all duration-200 border border-white/10">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
@@ -318,7 +318,7 @@
     
     <!-- ===== QUICK ACTIONS ===== -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <a href="{{ route('employers.edit', $employer->id) }}" 
+        <a href="{{ route('admin.employers.edit', $employer->id) }}" 
            class="flex items-center justify-center gap-2 px-4 py-3.5 bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 hover:border-[#1a237e]/20 text-sm font-medium text-gray-700 hover:text-[#1a237e] group">
             <svg class="w-4 h-4 text-gray-400 group-hover:text-[#1a237e] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>

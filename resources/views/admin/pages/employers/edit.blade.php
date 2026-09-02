@@ -14,14 +14,14 @@
             <p class="text-sm text-gray-500">Update company information</p>
         </div>
         <div class="flex items-center gap-2">
-            <a href="{{ route('employers.show', $employer->id) }}" 
+            <a href="{{ route('admin.employers.show', $employer->id) }}" 
                class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-all duration-200">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                 </svg>
                 Back to Profile
             </a>
-            <a href="{{ route('employers.index') }}" 
+            <a href="{{ route('admin.employers.index') }}" 
                class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-all duration-200">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
@@ -33,7 +33,7 @@
     
     <!-- ===== EDIT FORM ===== -->
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <form action="{{ route('employers.update', $employer->id) }}" method="POST" enctype="multipart/form-data" class="p-6">
+        <form action="{{ route('admin.employers.update', $employer->id) }}" method="POST" enctype="multipart/form-data" class="p-6">
             @csrf
             @method('PUT')
             
@@ -311,12 +311,10 @@
             <!-- ===== FORM ACTIONS ===== -->
             <div class="flex flex-wrap items-center gap-3 pt-6 mt-6 border-t border-gray-200">
                 <button type="submit" class="px-6 py-2.5 bg-[#1a237e] text-white font-medium rounded-lg hover:bg-[#0d1445] transition-all duration-200 shadow-sm hover:shadow-md flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.418 0V4h-.582m-15.418 0a9 9 0 1118 0m-18 0a9 9 0 01-3.6 6.6m18-6.6a9 9 0 01-3.6 6.6M4 4v5h.582m15.418 0V4h-.582m-15.418 0a9 9 0 1118 0m-18 0a9 9 0 01-3.6 6.6m18-6.6a9 9 0 01-3.6 6.6"/>
-                    </svg>
+                    
                     Update Company
                 </button>
-                <a href="{{ route('employers.show', $employer->id) }}" 
+                <a href="{{ route('admin.employers.show', $employer->id) }}" 
                    class="px-6 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-all duration-200">
                     Cancel
                 </a>

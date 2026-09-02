@@ -13,7 +13,7 @@
             <h2 class="text-lg font-semibold text-gray-900">All Users</h2>
             <p class="text-sm text-gray-500">Manage all registered users</p>
         </div>
-        <a href="{{ route('users.create') }}"
+        <a href="{{ route('admin.users.create') }}"
            class="inline-flex items-center gap-2 px-4 py-2 bg-[#1a237e] text-white text-sm font-medium rounded-lg hover:bg-[#0d1445] transition-all duration-200 shadow-sm hover:shadow-md">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
@@ -79,7 +79,7 @@
 
     <!-- ===== FILTERS & SEARCH ===== -->
     <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
-        <form action="{{ route('users.index') }}" method="GET" class="flex flex-wrap items-center gap-4">
+        <form action="{{ route('admin.users.index') }}" method="GET" class="flex flex-wrap items-center gap-4">
             <!-- Search -->
             <div class="flex-1 min-w-[200px]">
                 <div class="relative">
@@ -147,7 +147,7 @@
                 <button type="submit" class="px-4 py-2 bg-[#1a237e] text-white text-sm font-medium rounded-lg hover:bg-[#0d1445] transition-all duration-200">
                     Apply Filters
                 </button>
-                <a href="{{ route('users.index') }}" class="px-4 py-2 bg-gray-100 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-200 transition-all duration-200">
+                <a href="{{ route('admin.users.index') }}" class="px-4 py-2 bg-gray-100 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-200 transition-all duration-200">
                     Reset
                 </a>
             </div>
@@ -282,7 +282,7 @@
                                             class="p-1.5 rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all duration-200"
                                             title="Restore">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a5 5 0 015 5v2M3 10l4-4m-4 4l4 4"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                                         </svg>
                                     </button>
                                     <button onclick="forceDeleteUser({{ $user->id }})"
@@ -293,19 +293,19 @@
                                         </svg>
                                     </button>
                                     <form id="restore-form-{{ $user->id }}"
-                                        action="{{ route('users.restore', $user->id) }}"
+                                        action="{{ route('admin.users.restore', $user->id) }}"
                                         method="POST" class="hidden">
                                         @csrf
                                     </form>
                                     <form id="force-delete-form-{{ $user->id }}"
-                                        action="{{ route('users.force-delete', $user->id) }}"
+                                        action="{{ route('admin.users.force-delete', $user->id) }}"
                                         method="POST" class="hidden">
                                         @csrf
                                         @method('DELETE')
                                     </form>
                                 @else
                                     <!-- Existing actions (view, edit, verify, delete) -->
-                                    <a href="{{ route('users.show', $user->id) }}"
+                                    <a href="{{ route('admin.users.show', $user->id) }}"
                                        class="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
                                        title="View">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -313,7 +313,7 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                         </svg>
                                     </a>
-                                    <a href="{{ route('users.edit', $user->id) }}"
+                                    <a href="{{ route('admin.users.edit', $user->id) }}"
                                        class="p-1.5 rounded-lg text-gray-400 hover:text-amber-600 hover:bg-amber-50 transition-all duration-200"
                                        title="Edit">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -329,7 +329,7 @@
                                         </svg>
                                     </button>
                                     <form id="delete-form-{{ $user->id }}"
-                                        action="{{ route('users.destroy', $user->id) }}"
+                                        action="{{ route('admin.users.destroy', $user->id) }}"
                                         method="POST" class="hidden">
                                         @csrf
                                         @method('DELETE')
@@ -347,7 +347,7 @@
                                 </svg>
                                 <p class="text-gray-500 font-medium">No users found</p>
                                 <p class="text-sm text-gray-400 mt-1">Try adjusting your search or filters</p>
-                                <a href="{{ route('users.create') }}" class="mt-4 px-4 py-2 bg-[#1a237e] text-white text-sm font-medium rounded-lg hover:bg-[#0d1445] transition-all">
+                                <a href="{{ route('admin.users.create') }}" class="mt-4 px-4 py-2 bg-[#1a237e] text-white text-sm font-medium rounded-lg hover:bg-[#0d1445] transition-all">
                                     Add First User
                                 </a>
                             </div>
