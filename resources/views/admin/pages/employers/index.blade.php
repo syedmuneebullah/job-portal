@@ -6,14 +6,14 @@
 
 @section('content')
 <div class="space-y-6">
-    
+
     <!-- ===== HEADER WITH STATS ===== -->
     <div class="flex flex-wrap items-center justify-between gap-4">
         <div>
             <h2 class="text-lg font-semibold text-gray-900">All Employers</h2>
             <p class="text-sm text-gray-500">Manage all registered employers</p>
         </div>
-        <a href="" 
+        <a href=""
            class="inline-flex items-center gap-2 px-4 py-2 bg-[#1a237e] text-white text-sm font-medium rounded-lg hover:bg-[#0d1445] transition-all duration-200 shadow-sm hover:shadow-md">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
@@ -21,36 +21,60 @@
             Add Employer
         </a>
     </div>
-    
-    <!-- ===== STATS CARDS ===== -->
-    <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
-            <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Total</p>
-            <p class="text-2xl font-bold text-gray-900 mt-1">{{ $stats['total'] ?? 0 }}</p>
+
+   <div class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+        <div class="flex items-center gap-3 mt-1 text-sm">
+            <!-- All Employers -->
+            <span class="text-gray-600">
+                All <span class="font-semibold text-gray-900">{{ $stats['total'] ?? 0 }}</span>
+            </span>
+            <span class="text-gray-300">|</span>
+
+            <!-- Active -->
+            <a href="javascript:;"
+               class="text-gray-600 hover:text-[#1a237e] transition-colors {{ request('status') == 'active' ? 'text-[#1a237e] font-medium' : '' }}">
+                Active <span class="font-semibold {{ request('status') == 'active' ? 'text-[#1a237e]' : 'text-gray-900' }}">{{ $stats['active'] ?? 0 }}</span>
+            </a>
+            <span class="text-gray-300">|</span>
+
+            <!-- Verified -->
+            <a href="javascript:;"
+               class="text-gray-600 hover:text-[#1a237e] transition-colors {{ request('verification') == 'verified' ? 'text-[#1a237e] font-medium' : '' }}">
+                Verified <span class="font-semibold {{ request('verification') == 'verified' ? 'text-[#1a237e]' : 'text-gray-900' }}">{{ $stats['verified'] ?? 0 }}</span>
+            </a>
+            <span class="text-gray-300">|</span>
+
+            <!-- Pending -->
+            <a href="javascript:;"
+               class="text-gray-600 hover:text-[#1a237e] transition-colors {{ request('status') == 'pending' ? 'text-[#1a237e] font-medium' : '' }}">
+                Pending <span class="font-semibold {{ request('status') == 'pending' ? 'text-[#1a237e]' : 'text-gray-900' }}">{{ $stats['pending'] ?? 0 }}</span>
+            </a>
+            <span class="text-gray-300">|</span>
+
+            <!-- Suspended -->
+            <a href="javascript:;"
+               class="text-gray-600 hover:text-[#1a237e] transition-colors {{ request('status') == 'suspended' ? 'text-[#1a237e] font-medium' : '' }}">
+                Suspended <span class="font-semibold {{ request('status') == 'suspended' ? 'text-[#1a237e]' : 'text-gray-900' }}">{{ $stats['suspended'] ?? 0 }}</span>
+            </a>
+            <span class="text-gray-300">|</span>
+
+            <!-- Rejected -->
+            <a href="javascript:;"
+               class="text-gray-600 hover:text-[#1a237e] transition-colors {{ request('status') == 'rejected' ? 'text-[#1a237e] font-medium' : '' }}">
+                Rejected <span class="font-semibold {{ request('status') == 'rejected' ? 'text-[#1a237e]' : 'text-gray-900' }}">{{ $stats['rejected'] ?? 0 }}</span>
+            </a>
+            <span class="text-gray-300">|</span>
+
+            <!-- Trashed -->
+            <a href="javascript:;"
+               class="text-gray-600 hover:text-red-600 transition-colors {{ request('trashed') == 'only' ? 'text-red-600 font-medium' : '' }}">
+                Trashed <span class="font-semibold {{ request('trashed') == 'only' ? 'text-red-600' : 'text-gray-900' }}">{{ $stats['trashed'] ?? 0 }}</span>
+            </a>
         </div>
-        <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
-            <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Verified</p>
-            <p class="text-2xl font-bold text-blue-600 mt-1">{{ $stats['verified'] ?? 0 }}</p>
-        </div>
-        <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
-            <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Pending</p>
-            <p class="text-2xl font-bold text-amber-600 mt-1">{{ $stats['pending'] ?? 0 }}</p>
-        </div>
-        <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
-            <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Suspended</p>
-            <p class="text-2xl font-bold text-red-600 mt-1">{{ $stats['suspended'] ?? 0 }}</p>
-        </div>
-        <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
-            <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Rejected</p>
-            <p class="text-2xl font-bold text-red-600 mt-1">{{ $stats['rejected'] ?? 0 }}</p>
-        </div>
-        <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
-            <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Trashed</p>
-            <p class="text-2xl font-bold text-red-600 mt-1">{{ $stats['trashed'] ?? 0 }}</p>
-        </div>
-        
     </div>
-    
+</div>
+
     <!-- ===== FILTERS & SEARCH ===== -->
     <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
         <form action="" method="GET" class="flex flex-wrap items-center gap-4">
@@ -60,12 +84,12 @@
                     <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
-                    <input type="text" name="search" value="{{ request('search') }}" 
-                           placeholder="Search by name, email, company..." 
+                    <input type="text" name="search" value="{{ request('search') }}"
+                           placeholder="Search by name, email, company..."
                            class="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:border-[#1a237e] focus:ring-2 focus:ring-[#1a237e]/20 outline-none transition-all">
                 </div>
             </div>
-            
+
             <!-- Filter: Status -->
             <div class="w-40">
                 <select name="verification_status" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:border-[#1a237e] focus:ring-2 focus:ring-[#1a237e]/20 outline-none transition-all">
@@ -85,9 +109,9 @@
                     <option value="only" {{ request('trashed') == 'only' ? 'selected' : '' }}>Trashed Only</option>
                 </select>
             </div>
-            
-            
-            
+
+
+
             <!-- Filter: Industry -->
             <div class="w-40">
                 <select name="industry" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:border-[#1a237e] focus:ring-2 focus:ring-[#1a237e]/20 outline-none transition-all">
@@ -99,7 +123,7 @@
                     @endforeach
                 </select>
             </div>
-            
+
             <!-- Per Page -->
             <div class="w-24">
                 <select name="per_page" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:border-[#1a237e] focus:ring-2 focus:ring-[#1a237e]/20 outline-none transition-all">
@@ -109,7 +133,7 @@
                     <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
                 </select>
             </div>
-            
+
             <!-- Buttons -->
             <div class="flex items-center gap-2">
                 <button type="submit" class="px-4 py-2 bg-[#1a237e] text-white text-sm font-medium rounded-lg hover:bg-[#0d1445] transition-all duration-200">
@@ -121,7 +145,7 @@
             </div>
         </form>
     </div>
-    
+
     <!-- ===== EMPLOYERS TABLE ===== -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <!-- Table -->
@@ -145,17 +169,17 @@
                     <tr class="hover:bg-gray-50/50 transition-colors duration-150 group {{ $employer->trashed() ? 'bg-red-50/30' : '' }}">
                         <!-- Checkbox -->
                         <td class="px-6 py-4">
-                            <input type="checkbox" name="selected[]" value="{{ $employer->id }}" 
+                            <input type="checkbox" name="selected[]" value="{{ $employer->id }}"
                                    class="rounded border-gray-300 text-[#1a237e] focus:ring-[#1a237e]">
                         </td>
-                        
+
                         <!-- Company -->
                         <td class="px-6 py-4">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center flex-shrink-0 overflow-hidden">
                                     @if($employer->company_logo)
-                                        <img src="{{ asset('storage/'.$employer->company_logo) }}" 
-                                             alt="{{ $employer->company_name }}" 
+                                        <img src="{{ asset('storage/'.$employer->company_logo) }}"
+                                             alt="{{ $employer->company_name }}"
                                              class="w-8 h-8 object-contain">
                                     @else
                                         <span class="text-gray-400 text-xs font-medium">
@@ -171,18 +195,18 @@
                                 </div>
                             </div>
                         </td>
-                        
+
                         <!-- Contact -->
                         <td class="px-6 py-4">
-                            
+
                             <p class="text-xs text-gray-400">{{ $employer->phone ?? 'No phone' }}</p>
                         </td>
-                        
+
                         <!-- Industry -->
                         <td class="px-6 py-4">
                             <span class="text-sm text-gray-600">{{ $employer->industry ?? '—' }}</span>
                         </td>
-                        
+
                         <!-- Verification -->
                         <td class="px-6 py-4">
                             @if($employer->trashed())
@@ -202,49 +226,49 @@
                                 </span>
                             @endif
                         </td>
-                        
+
                         <!-- Joined -->
                         <td class="px-6 py-4">
                             <p class="text-sm text-gray-600">{{ $employer->created_at->format('M d, Y') }}</p>
                             <p class="text-xs text-gray-400">{{ $employer->created_at->diffForHumans() }}</p>
                         </td>
-                        
+
                         <!-- Actions -->
                         <td class="px-6 py-4 text-right">
                             <div class="flex items-center justify-end gap-1">
                                 @if($employer->trashed())
                                     <!-- Restore Button -->
-                                    <button onclick="restoreEmployer({{ $employer->id }})" 
+                                    <button onclick="restoreEmployer({{ $employer->id }})"
                                             class="p-1.5 rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all duration-200"
                                             title="Restore">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a5 5 0 015 5v2M3 10l4-4m-4 4l4 4"/>
                                         </svg>
                                     </button>
-                                    
+
                                     <!-- Force Delete Button -->
-                                    <button onclick="forceDelete({{ $employer->id }})" 
+                                    <button onclick="forceDelete({{ $employer->id }})"
                                             class="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all duration-200"
                                             title="Permanently Delete">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                         </svg>
                                     </button>
-                                    
-                                    <form id="restore-form-{{ $employer->id }}" 
-                                        action="{{ route('employers.restore', $employer->id) }}" 
+
+                                    <form id="restore-form-{{ $employer->id }}"
+                                        action="{{ route('employers.restore', $employer->id) }}"
                                         method="POST" class="hidden">
                                         @csrf
                                     </form>
-                                    <form id="force-delete-form-{{ $employer->id }}" 
-                                        action="{{ route('employers.force-delete', $employer->id) }}" 
+                                    <form id="force-delete-form-{{ $employer->id }}"
+                                        action="{{ route('employers.force-delete', $employer->id) }}"
                                         method="POST" class="hidden">
                                         @csrf
                                         @method('DELETE')
                                     </form>
                                 @else
                                     <!-- View, Edit, Delete Buttons -->
-                                    <a href="{{ route('employers.show', $employer->id) }}" 
+                                    <a href="{{ route('employers.show', $employer->id) }}"
                                     class="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
                                     title="View">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -252,22 +276,22 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                         </svg>
                                     </a>
-                                    <a href="{{ route('employers.edit', $employer->id) }}" 
+                                    <a href="{{ route('employers.edit', $employer->id) }}"
                                     class="p-1.5 rounded-lg text-gray-400 hover:text-amber-600 hover:bg-amber-50 transition-all duration-200"
                                     title="Edit">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                         </svg>
                                     </a>
-                                    <button onclick="confirmDelete({{ $employer->id }}, '{{ addslashes($employer->company_name) }}')" 
+                                    <button onclick="confirmDelete({{ $employer->id }}, '{{ addslashes($employer->company_name) }}')"
                                             class="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all duration-200"
                                             title="Delete">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                         </svg>
                                     </button>
-                                    <form id="delete-form-{{ $employer->id }}" 
-                                        action="{{ route('employers.destroy', $employer->id) }}" 
+                                    <form id="delete-form-{{ $employer->id }}"
+                                        action="{{ route('employers.destroy', $employer->id) }}"
                                         method="POST" class="hidden">
                                         @csrf
                                         @method('DELETE')
@@ -292,12 +316,12 @@
                 </tbody>
             </table>
         </div>
-        
+
         <!-- ===== TABLE FOOTER ===== -->
         <div class="flex flex-wrap items-center justify-between gap-4 px-6 py-4 border-t border-gray-200 bg-gray-50/50">
             <p class="text-sm text-gray-500">
-                Showing <span class="font-medium text-gray-700">{{ $employers->firstItem() ?? 0 }}</span> 
-                to <span class="font-medium text-gray-700">{{ $employers->lastItem() ?? 0 }}</span> 
+                Showing <span class="font-medium text-gray-700">{{ $employers->firstItem() ?? 0 }}</span>
+                to <span class="font-medium text-gray-700">{{ $employers->lastItem() ?? 0 }}</span>
                 of <span class="font-medium text-gray-700">{{ $employers->total() }}</span> results
             </p>
             {{ $employers->withQueryString()->links() }}
