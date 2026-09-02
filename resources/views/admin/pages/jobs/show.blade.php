@@ -101,6 +101,100 @@
                 </div>
                 @endif
             </div>
+             <!-- ===== APPLICATION QUESTIONS ===== -->
+            @if($job->questions && $job->questions->count() > 0)
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-[#1a237e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Application Questions
+                    <span class="ml-2 text-xs text-gray-400 font-normal">({{ $job->questions->count() }} questions)</span>
+                </h3>
+                <div class="space-y-3">
+                    @foreach($job->questions as $question)
+                        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-[#1a237e] transition-colors">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="text-sm font-medium text-gray-900">{{ $question->question }}</span>
+                                        @if($question->required)
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">
+                                                Required
+                                            </span>
+                                        @endif
+                                    </div>
+                                    <div class="flex items-center gap-3 text-xs text-gray-500">
+                                        <span class="flex items-center">
+                                            <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
+                                            </svg>
+                                            {{ ucfirst($question->type) }}
+                                        </span>
+                                        @if(in_array($question->type, ['select', 'checkbox', 'radio']) && $question->options)
+                                            <span class="flex items-center">
+                                                <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+                                                </svg>
+                                                Options: 
+                                                @php
+                                                    $options = is_array($question->options) 
+                                                        ? $question->options 
+                                                        : (is_string($question->options) ? json_decode($question->options, true) ?? [] : []);
+                                                @endphp
+                                                {{ implode(', ', $options) }}
+                                            </span>
+                                        @endif
+                                        @if($question->order !== null)
+                                            <span class="flex items-center">
+                                                <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                                                </svg>
+                                                Order: {{ $question->order + 1 }}
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+                                <!-- Question Type Icon -->
+                                <div class="ml-4 flex-shrink-0">
+                                    @if($question->type === 'text')
+                                        <span class="inline-flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 rounded-full">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
+                                            </svg>
+                                        </span>
+                                    @elseif($question->type === 'textarea')
+                                        <span class="inline-flex items-center justify-center w-8 h-8 bg-green-100 text-green-600 rounded-full">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/>
+                                            </svg>
+                                        </span>
+                                    @elseif($question->type === 'select')
+                                        <span class="inline-flex items-center justify-center w-8 h-8 bg-purple-100 text-purple-600 rounded-full">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/>
+                                            </svg>
+                                        </span>
+                                    @elseif($question->type === 'checkbox')
+                                        <span class="inline-flex items-center justify-center w-8 h-8 bg-amber-100 text-amber-600 rounded-full">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                                            </svg>
+                                        </span>
+                                    @elseif($question->type === 'radio')
+                                        <span class="inline-flex items-center justify-center w-8 h-8 bg-rose-100 text-rose-600 rounded-full">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
         </div>
         
         <!-- Sidebar Info -->

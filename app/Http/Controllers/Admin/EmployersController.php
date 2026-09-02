@@ -238,7 +238,7 @@ class EmployersController extends Controller
         //     ]);
         // }
         flash()->success('Employer Details Updated');
-        return redirect()->route('employers.index');
+        return redirect()->route('admin.employers.index');
     }
 
     /**
@@ -255,7 +255,7 @@ class EmployersController extends Controller
         $employer->delete();
 
         flash()->success("Company '{$companyName}' has been moved to trash");
-        return redirect()->route('employers.index');
+        return redirect()->route('admin.employers.index');
     }
 
     public function restore($id)
@@ -266,7 +266,7 @@ class EmployersController extends Controller
         $employer->restore();
 
         flash()->success("Company '{$companyName}' has been restored successfully");
-        return redirect()->route('employers.index');
+        return redirect()->route('admin.employers.index');
     }
 
     /**
@@ -286,7 +286,7 @@ class EmployersController extends Controller
         $employer->forceDelete();
 
         flash()->success("Company '{$companyName}' has been permanently deleted");
-        return redirect()->route('employers.index');
+        return redirect()->route('admin.employers.index');
     }
 
     /**

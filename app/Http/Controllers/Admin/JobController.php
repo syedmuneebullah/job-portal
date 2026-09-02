@@ -21,7 +21,7 @@ class JobController extends Controller
         // Base query with eager loading
         $query = JobPost::query()
             ->with(['employer' => function($q) {
-                $q->select('id', 'company_name', 'first_name', 'last_name', 'email');
+                $q->select('id', 'company_name', 'email');
             }, 'recruiter' => function($q) {
                 $q->select('id', 'first_name', 'last_name', 'email');
             }])
@@ -409,11 +409,8 @@ class JobController extends Controller
         
         $job->save();
 
-        return response()->json([
-            'success' => true,
-            'message' => $message,
-            'data' => $job
-        ]);
+        flash()->success($message);
+        return redirect()->route('admin.jobs.index');
     }
 
     /**
@@ -426,11 +423,8 @@ class JobController extends Controller
         $job->visibility = $job->visibility === 'public' ? 'private' : 'public';
         $job->save();
 
-        return response()->json([
-            'success' => true,
-            'message' => "Job visibility updated to {$job->visibility}",
-            'data' => $job
-        ]);
+        flash()->success('Job visibility updated to'. $job->visibility);
+        return redirect()->route('admin.jobs.index');
     }
 
     /**
@@ -442,18 +436,15 @@ class JobController extends Controller
         
         $newJob = $originalJob->replicate();
         $newJob->title = $originalJob->title . ' (Copy)';
-        $newJob->slug = Str::slug($newJob->title) . '-' . Str::random(6);
+        // $newJob->slug = Str::slug($newJob->title) . '-' . Str::random(6);
         $newJob->status = 'draft';
         $newJob->published_at = null;
         $newJob->created_at = now();
         $newJob->updated_at = now();
         $newJob->save();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Job duplicated successfully',
-            'data' => $newJob
-        ]);
+        flash()->success('Job duplicated successfully');
+        return redirect()->route('admin.jobs.index');
     }
 
     /**

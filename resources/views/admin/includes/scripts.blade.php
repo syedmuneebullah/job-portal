@@ -61,6 +61,15 @@
             sidebar.classList.add('collapsed');
             hideAllText();
             isSidebarCollapsed = true;
+            
+            // Close all sub-menus when collapsed
+            document.querySelectorAll('.sub-menu').forEach(menu => {
+                menu.classList.add('max-h-0');
+                menu.classList.remove('max-h-96');
+            });
+            document.querySelectorAll('#subscriptionsMenuIcon, #jobsMenuIcon, #settingsMenuIcon').forEach(icon => {
+                if (icon) icon.classList.remove('rotate-180');
+            });
         }
         
         function expandSidebar() {
@@ -72,15 +81,17 @@
         }
         
         // ===== SIDEBAR TOGGLE =====
-        toggleBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            
-            if (isSidebarCollapsed) {
-                expandSidebar();
-            } else {
-                collapseSidebar();
-            }
-        });
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                
+                if (isSidebarCollapsed) {
+                    expandSidebar();
+                } else {
+                    collapseSidebar();
+                }
+            });
+        }
         
         // ===== HOVER TO EXPAND =====
         sidebar.addEventListener('mouseenter', function() {
@@ -120,26 +131,88 @@
             }
         });
         
+        // ===== SUB-MENU TOGGLE =====
+        window.toggleSubMenu = function(menuId) {
+            const menu = document.getElementById(menuId);
+            const icon = document.getElementById(menuId + 'Icon');
+            
+            if (!menu) return;
+            
+            // If sidebar is collapsed, expand it first
+            if (isSidebarCollapsed) {
+                expandSidebar();
+                // Wait a bit then toggle
+                setTimeout(function() {
+                    toggleSubMenuInternal(menu, icon);
+                }, 300);
+            } else {
+                toggleSubMenuInternal(menu, icon);
+            }
+        };
+        
+        function toggleSubMenuInternal(menu, icon) {
+            if (menu.classList.contains('max-h-0')) {
+                // Close other sub-menus
+                document.querySelectorAll('.sub-menu').forEach(m => {
+                    if (m.id !== menu.id) {
+                        m.classList.add('max-h-0');
+                        m.classList.remove('max-h-96');
+                    }
+                });
+                document.querySelectorAll('.sub-menu-icon').forEach(i => {
+                    if (i.id !== icon?.id) {
+                        i.classList.remove('rotate-180');
+                    }
+                });
+                
+                // Open this sub-menu
+                menu.classList.remove('max-h-0');
+                menu.classList.add('max-h-96');
+                if (icon) {
+                    icon.classList.add('rotate-180');
+                }
+            } else {
+                // Close this sub-menu
+                menu.classList.add('max-h-0');
+                menu.classList.remove('max-h-96');
+                if (icon) {
+                    icon.classList.remove('rotate-180');
+                }
+            }
+        }
+        
         // ===== PROFILE DROPDOWN =====
-        profileBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            profileDropdown.classList.toggle('hidden');
-            notificationDropdown.classList.add('hidden');
-        });
+        if (profileBtn) {
+            profileBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (profileDropdown) {
+                    profileDropdown.classList.toggle('hidden');
+                }
+                if (notificationDropdown) {
+                    notificationDropdown.classList.add('hidden');
+                }
+            });
+        }
         
         // ===== NOTIFICATION DROPDOWN =====
-        notificationBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            notificationDropdown.classList.toggle('hidden');
-            profileDropdown.classList.add('hidden');
-        });
+        if (notificationBtn) {
+            notificationBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (notificationDropdown) {
+                    notificationDropdown.classList.toggle('hidden');
+                }
+                if (profileDropdown) {
+                    profileDropdown.classList.add('hidden');
+                }
+            });
+        }
         
         // ===== CLOSE DROPDOWNS ON OUTSIDE CLICK =====
         document.addEventListener('click', function(e) {
-            if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
+            if (profileBtn && !profileBtn.contains(e.target) && profileDropdown && !profileDropdown.contains(e.target)) {
                 profileDropdown.classList.add('hidden');
             }
-            if (!notificationBtn.contains(e.target) && !notificationDropdown.contains(e.target)) {
+            if (notificationBtn && !notificationBtn.contains(e.target) && notificationDropdown && !notificationDropdown.contains(e.target)) {
                 notificationDropdown.classList.add('hidden');
             }
         });
@@ -153,14 +226,9 @@
             } else {
                 // Only expand if not collapsed by user
                 if (isSidebarCollapsed && !isHovering) {
-                    // Don't auto-expand on desktop if user collapsed it
-                    // But if it was collapsed by responsive, expand it
-                    if (window.innerWidth >= 768) {
-                        // Check if it was collapsed by user or by responsive
-                        const wasResponsiveCollapse = localStorage.getItem('sidebarResponsive');
-                        if (!wasResponsiveCollapse) {
-                            expandSidebar();
-                        }
+                    const wasResponsiveCollapse = localStorage.getItem('sidebarResponsive');
+                    if (!wasResponsiveCollapse) {
+                        expandSidebar();
                     }
                 }
             }
@@ -202,8 +270,16 @@
                             const rect = this.getBoundingClientRect();
                             const tooltipEl = this.querySelector('.nav-tooltip');
                             if (tooltipEl) {
-                                tooltipEl.style.left = (rect.left + 75) + 'px';
-                                tooltipEl.style.top = (rect.top + rect.height / 2) + 'px';
+                                // Check if this is a sub-menu item
+                                const isSubMenu = this.closest('.sub-menu');
+                                if (isSubMenu) {
+                                    // Position tooltip differently for sub-menu items
+                                    tooltipEl.style.left = (rect.left + 75) + 'px';
+                                    tooltipEl.style.top = (rect.top + rect.height / 2) + 'px';
+                                } else {
+                                    tooltipEl.style.left = (rect.left + 75) + 'px';
+                                    tooltipEl.style.top = (rect.top + rect.height / 2) + 'px';
+                                }
                                 tooltipEl.style.display = 'flex';
                             }
                         }
@@ -225,9 +301,33 @@
         document.addEventListener('keydown', function(e) {
             if (e.ctrlKey && e.key === 'b') {
                 e.preventDefault();
-                toggleBtn.click();
+                if (toggleBtn) {
+                    toggleBtn.click();
+                }
             }
         });
+        
+        // ===== ACTIVE LINK HIGHLIGHT =====
+        function highlightActiveLink() {
+            const currentPath = window.location.pathname;
+            document.querySelectorAll('.nav-link').forEach(link => {
+                const href = link.getAttribute('href');
+                if (href && href !== '#' && currentPath.includes(href)) {
+                    link.classList.add('nav-link-active');
+                    // If it's in a sub-menu, expand the parent
+                    const parentSubMenu = link.closest('.sub-menu');
+                    if (parentSubMenu) {
+                        const parentId = parentSubMenu.id;
+                        if (parentId) {
+                            const icon = document.getElementById(parentId + 'Icon');
+                            toggleSubMenuInternal(parentSubMenu, icon);
+                        }
+                    }
+                }
+            });
+        }
+        
+        highlightActiveLink();
         
         console.log('Admin Panel Loaded Successfully!');
         console.log('💡 Tip: Press Ctrl + B to toggle sidebar');

@@ -95,6 +95,14 @@ class UserSubscription extends Model
         return null;
     }
 
+    public function getRemainingTrialDaysAttribute()
+    {
+        if ($this->trial_ends_at) {
+            return now()->diffInDays($this->trial_ends_at, false);
+        }
+        return null;
+    }
+
     // Mutators
     public function markAsExpired()
     {
