@@ -12,13 +12,12 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    //
     public function RegisterView()
     {
         return view('auth.user.register');
     }
 
-     public function LoginView()
+    public function LoginView()
     {
         return view('auth.user.login');
     }
@@ -37,10 +36,9 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors()
-            ], 422);
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
         }
 
         $user = User::create([
@@ -52,7 +50,7 @@ class AuthController extends Controller
             'status' => $request->user_type === 'admin' ? 'active' : 'pending',
         ]);
 
-        // Agar user employer hai toh employer profile create karo
+        // Create profiles based on user type
         if ($request->user_type === 'employer') {
             $user->employer()->create([
                 'company_name' => $request->company_name ?? 'My Company',
@@ -60,7 +58,6 @@ class AuthController extends Controller
             ]);
         }
 
-        // Agar user recruiter hai toh recruiter profile create karo
         if ($request->user_type === 'recruiter') {
             $user->recruiter()->create([
                 'recruiter_type' => $request->recruiter_type ?? 'freelance',
@@ -68,17 +65,14 @@ class AuthController extends Controller
             ]);
         }
 
-        // Agar user applicant hai toh applicant profile create karo
         if ($request->user_type === 'job_seeker') {
             $user->applicantProfile()->create([
                 'is_visible' => true,
             ]);
         }
 
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-       flash()->success('Registration successful! Please login.');
-       return redirect()->route('auth.user.login');
+        flash()->success('Registration successful! Please login.');
+        return redirect()->route('auth.user.login');
     }
 
     /**
@@ -92,81 +86,119 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors()
-            ], 422);
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
         }
 
-        if (!Auth::attempt($request->only('email', 'password'))) {
-            throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
-            ]);
+        if (!Auth::attempt($request->only('email', 'password'), $request->remember ?? false)) {
+            return redirect()->back()
+                ->withErrors(['email' => 'The provided credentials are incorrect.'])
+                ->withInput();
         }
 
-        $user = User::where('email', $request->email)->firstOrFail();
+        $user = Auth::user();
 
-        // Check if user is active
+        // Check user status
         if ($user->status === 'pending') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Your account is pending approval. Please wait for admin approval.'
-            ], 403);
+            Auth::logout();
+            return redirect()->back()
+                ->withErrors(['email' => 'Your account is pending approval. Please wait for admin approval.']);
         }
 
         if ($user->status === 'suspended') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Your account has been suspended. Please contact admin.'
-            ], 403);
+            Auth::logout();
+            return redirect()->back()
+                ->withErrors(['email' => 'Your account has been suspended. Please contact admin.']);
         }
 
         if ($user->status === 'rejected') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Your account has been rejected. Please contact admin.'
-            ], 403);
+            Auth::logout();
+            return redirect()->back()
+                ->withErrors(['email' => 'Your account has been rejected. Please contact admin.']);
         }
 
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Login successful',
-            'data' => [
-                'user' => $user,
-                'access_token' => $token,
-                'token_type' => 'Bearer',
-            ]
-        ]);
+        // Redirect based on user type
+        if ($user->user_type === 'admin') {
+            return redirect()->route('dashboard');
+        } elseif ($user->user_type === 'employer') {
+            return redirect()->route('employer.dashboard');
+        } elseif ($user->user_type === 'recruiter') {
+            return redirect()->route('recruiter.dashboard');
+        } else {
+            return redirect()->route('user.home');
+        }
     }
 
     /**
-     * Logout user
+     * Logout user (Web)
      */
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        // For web logout (session-based)
+        Auth::logout();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Logged out successfully'
-        ]);
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        flash()->success('Logged out successfully!');
+        return redirect()->route('auth.user.login');
     }
 
     /**
-     * Get authenticated user
+     * API Logout (Sanctum token-based)
+     * This should be in a separate API controller ideally
+     */
+    public function apiLogout(Request $request)
+    {
+        try {
+            $user = $request->user();
+
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User not authenticated'
+                ], 401);
+            }
+
+            // Delete current access token
+            $token = $user->currentAccessToken();
+            if ($token) {
+                $token->delete();
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Logged out successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Logout failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get authenticated user (API)
      */
     public function user(Request $request)
     {
         $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not authenticated'
+            ], 401);
+        }
 
         // Load relationships based on user type
         if ($user->user_type === 'employer') {
             $user->load('employer');
         } elseif ($user->user_type === 'recruiter') {
             $user->load('recruiter');
-        } elseif ($user->user_type === 'applicant') {
+        } elseif ($user->user_type === 'job_seeker') {
             $user->load('applicantProfile');
         }
 
@@ -177,14 +209,24 @@ class AuthController extends Controller
     }
 
     /**
-     * Refresh token
+     * Refresh token (API)
      */
     public function refresh(Request $request)
     {
         $user = $request->user();
 
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not authenticated'
+            ], 401);
+        }
+
         // Delete old token
-        $request->user()->currentAccessToken()->delete();
+        $currentToken = $user->currentAccessToken();
+        if ($currentToken) {
+            $currentToken->delete();
+        }
 
         // Create new token
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -199,7 +241,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Change password
+     * Change password (API)
      */
     public function changePassword(Request $request)
     {
@@ -216,6 +258,13 @@ class AuthController extends Controller
         }
 
         $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not authenticated'
+            ], 401);
+        }
 
         if (!Hash::check($request->current_password, $user->password)) {
             return response()->json([

@@ -29,7 +29,8 @@ class UsersController extends Controller
                 'profile_photo',
                 'email_verified_at',
                 'created_at',
-                'updated_at'
+                'updated_at',
+                'deleted_at' // Make sure to select this for trashed check
             ]);
 
         // Search functionality
@@ -42,6 +43,18 @@ class UsersController extends Controller
                   ->orWhere('phone', 'LIKE', "%{$search}%")
                   ->orWhere('user_type', 'LIKE', "%{$search}%");
             });
+        }
+
+        // Show trashed records filter
+        if ($request->filled('trashed')) {
+            if ($request->trashed === 'only') {
+                $query->onlyTrashed(); // Show only deleted
+            } elseif ($request->trashed === 'with') {
+                $query->withTrashed(); // Show all including deleted
+            }
+        } else {
+            // By default, exclude trashed records
+            $query->whereNull('deleted_at');
         }
 
         // Filter by user type
@@ -74,9 +87,9 @@ class UsersController extends Controller
         // Sort by
         $sortBy = $request->sort_by ?? 'created_at';
         $sortOrder = $request->sort_order ?? 'desc';
-        
+
         // Allowed sort columns (prevent SQL injection)
-        $allowedSorts = ['id', 'first_name', 'last_name', 'email', 'user_type', 'status', 'created_at', 'updated_at'];
+        $allowedSorts = ['id', 'first_name', 'last_name', 'email', 'user_type', 'status', 'created_at', 'updated_at', 'deleted_at'];
         if (in_array($sortBy, $allowedSorts)) {
             $query->orderBy($sortBy, $sortOrder);
         }
@@ -85,7 +98,7 @@ class UsersController extends Controller
         $perPage = $request->per_page ?? 10;
         $users = $query->paginate($perPage);
 
-        // Get statistics
+        // Get statistics (including trashed)
         $stats = [
             'total' => User::count(),
             'admins' => User::where('user_type', 'admin')->count(),
@@ -97,6 +110,7 @@ class UsersController extends Controller
             'suspended' => User::where('status', 'suspended')->count(),
             'verified' => User::whereNotNull('email_verified_at')->count(),
             'unverified' => User::whereNull('email_verified_at')->count(),
+            'trashed' => User::onlyTrashed()->count(), // Add this line
         ];
 
         // Get unique user types for filter
@@ -227,7 +241,7 @@ class UsersController extends Controller
     public function edit($id)
     {
         $user = User::findOrFail($id);
-        return view('admin.users.edit', compact('user'));
+        return view('admin.pages.users.edit', compact('user'));
     }
 
     /**
@@ -274,14 +288,8 @@ class UsersController extends Controller
 
         $user->update($validated);
 
-        if ($request->ajax()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'User updated successfully',
-                'data' => $user
-            ]);
-        }
 
+        flash()->success('User Updated Successfully!');
         return redirect()->route('users.index');
     }
 
@@ -292,7 +300,7 @@ class UsersController extends Controller
     {
         $user = User::findOrFail($id);
         $userName = $user->first_name . ' ' . $user->last_name;
-        
+
         $user->delete();
 
         flash()->success("User '{$userName}' has been moved to trash");
@@ -306,7 +314,7 @@ class UsersController extends Controller
     {
         $user = User::withTrashed()->findOrFail($id);
         $userName = $user->first_name . ' ' . $user->last_name;
-        
+
         $user->restore();
 
         flash()->success("User '{$userName}' has been restored successfully");
@@ -320,7 +328,7 @@ class UsersController extends Controller
     {
         $user = User::withTrashed()->findOrFail($id);
         $userName = $user->first_name . ' ' . $user->last_name;
-        
+
         // Delete profile photo
         if ($user->profile_photo) {
             Storage::disk('public')->delete($user->profile_photo);
@@ -439,7 +447,7 @@ class UsersController extends Controller
         $callback = function() use ($users) {
             $handle = fopen('php://output', 'w');
             fputcsv($handle, ['First Name', 'Last Name', 'Email', 'User Type', 'Status', 'Phone', 'Created At']);
-            
+
             foreach ($users as $user) {
                 fputcsv($handle, [
                     $user->first_name,

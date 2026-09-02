@@ -463,13 +463,13 @@
     <div class="min-h-screen bg-gray-50/50">
 
         <!-- ===== SIDEBAR ===== -->
-        @include('admin.includes.sidebar')
+        @include('employer.includes.sidebar')
 
         <!-- ===== MAIN CONTENT ===== -->
         <div id="mainContent" class="sidebar-transition" style="margin-left: 260px;">
 
             <!-- ===== HEADER ===== -->
-            @include('admin.includes.header')
+            @include('employer.includes.header')
 
             <!-- ===== PAGE CONTENT ===== -->
             <main class="p-6">
@@ -481,7 +481,7 @@
     </div>
 
     <!-- ===== SCRIPTS ===== -->
-    @include('admin.includes.scripts')
+    @include('employer.includes.scripts')
 
     @stack('scripts')
 

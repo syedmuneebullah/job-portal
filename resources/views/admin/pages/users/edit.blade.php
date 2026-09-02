@@ -5,7 +5,7 @@
 
 @section('content')
 <div class="space-y-6">
-    
+
     <!-- ===== HEADER ===== -->
     <div class="flex flex-wrap items-center justify-between gap-4">
         <div>
@@ -14,27 +14,27 @@
         </div>
         <div class="flex items-center gap-2">
             @if($user->trashed())
-                <button onclick="restoreUser({{ $user->id }})" 
+                <button onclick="restoreUser({{ $user->id }})"
                         class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white text-sm font-medium rounded-lg hover:bg-emerald-600 transition-all duration-200">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.418 0V4h-.582m-15.418 0a9 9 0 1118 0m-18 0a9 9 0 01-3.6 6.6m18-6.6a9 9 0 01-3.6 6.6"/>
                     </svg>
                     Restore User
                 </button>
-                <form id="restore-form-{{ $user->id }}" 
-                      action="{{ route('users.restore', $user->id) }}" 
+                <form id="restore-form-{{ $user->id }}"
+                      action="{{ route('users.restore', $user->id) }}"
                       method="POST" class="hidden">
                     @csrf
                 </form>
             @endif
-            <a href="{{ route('users.show', $user->id) }}" 
+            <a href="{{ route('users.show', $user->id) }}"
                class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-all duration-200">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                 </svg>
                 Back to Profile
             </a>
-            <a href="{{ route('users.index') }}" 
+            <a href="{{ route('users.index') }}"
                class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-all duration-200">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
@@ -43,35 +43,20 @@
             </a>
         </div>
     </div>
-    
+
     <!-- ===== EDIT FORM ===== -->
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <form action="{{ route('users.update', $user->id) }}" method="POST" enctype="multipart/form-data" class="p-6">
             @csrf
             @method('PUT')
-            
-            <!-- Trashed Notice -->
-            @if($user->trashed())
-                <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3">
-                    <svg class="w-5 h-5 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <div>
-                        <p class="text-sm font-medium text-red-700">This user is in trash</p>
-                        <p class="text-xs text-red-600">Deleted on {{ $user->deleted_at->format('M d, Y H:i') }}</p>
-                    </div>
-                    <button type="button" onclick="restoreUser({{ $user->id }})" 
-                            class="ml-auto px-3 py-1.5 bg-emerald-500 text-white text-xs font-medium rounded-lg hover:bg-emerald-600 transition-all">
-                        Restore User
-                    </button>
-                </div>
-            @endif
-            
+
+
+
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                
+
                 <!-- ===== LEFT COLUMN ===== -->
                 <div class="lg:col-span-2 space-y-6">
-                    
+
                     <!-- Personal Information -->
                     <div>
                         <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -80,51 +65,51 @@
                             </svg>
                             Personal Information
                         </h3>
-                        
+
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <!-- First Name -->
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1.5">
                                     First Name <span class="text-red-500">*</span>
                                 </label>
-                                <input type="text" name="first_name" value="{{ old('first_name', $user->first_name) }}" 
+                                <input type="text" name="first_name" value="{{ old('first_name', $user->first_name) }}"
                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-[#1a237e] focus:ring-2 focus:ring-[#1a237e]/20 outline-none transition-all @error('first_name') border-red-500 @enderror"
                                        placeholder="Enter first name" required>
                                 @error('first_name')
                                     <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
-                            
+
                             <!-- Last Name -->
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1.5">
                                     Last Name <span class="text-red-500">*</span>
                                 </label>
-                                <input type="text" name="last_name" value="{{ old('last_name', $user->last_name) }}" 
+                                <input type="text" name="last_name" value="{{ old('last_name', $user->last_name) }}"
                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-[#1a237e] focus:ring-2 focus:ring-[#1a237e]/20 outline-none transition-all @error('last_name') border-red-500 @enderror"
                                        placeholder="Enter last name" required>
                                 @error('last_name')
                                     <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
-                            
+
                             <!-- Email -->
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1.5">
                                     Email Address <span class="text-red-500">*</span>
                                 </label>
-                                <input type="email" name="email" value="{{ old('email', $user->email) }}" 
+                                <input type="email" name="email" value="{{ old('email', $user->email) }}"
                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-[#1a237e] focus:ring-2 focus:ring-[#1a237e]/20 outline-none transition-all @error('email') border-red-500 @enderror"
                                        placeholder="user@example.com" required>
                                 @error('email')
                                     <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
-                            
+
                             <!-- Phone -->
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1.5">Phone Number</label>
-                                <input type="text" name="phone" value="{{ old('phone', $user->phone) }}" 
+                                <input type="text" name="phone" value="{{ old('phone', $user->phone) }}"
                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-[#1a237e] focus:ring-2 focus:ring-[#1a237e]/20 outline-none transition-all @error('phone') border-red-500 @enderror"
                                        placeholder="+1 234 567 890">
                                 @error('phone')
@@ -133,7 +118,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Password -->
                     <div>
                         <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -142,11 +127,11 @@
                             </svg>
                             Change Password
                         </h3>
-                        
+
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1.5">New Password</label>
-                                <input type="password" name="password" 
+                                <input type="password" name="password"
                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-[#1a237e] focus:ring-2 focus:ring-[#1a237e]/20 outline-none transition-all @error('password') border-red-500 @enderror"
                                        placeholder="Enter new password">
                                 @error('password')
@@ -155,7 +140,7 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1.5">Confirm Password</label>
-                                <input type="password" name="password_confirmation" 
+                                <input type="password" name="password_confirmation"
                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-[#1a237e] focus:ring-2 focus:ring-[#1a237e]/20 outline-none transition-all"
                                        placeholder="Confirm new password">
                             </div>
@@ -163,10 +148,10 @@
                         <p class="text-xs text-gray-400 mt-2">Leave blank to keep current password</p>
                     </div>
                 </div>
-                
+
                 <!-- ===== RIGHT COLUMN ===== -->
                 <div class="space-y-6">
-                    
+
                     <!-- Profile Photo -->
                     <div>
                         <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -175,15 +160,15 @@
                             </svg>
                             Profile Photo
                         </h3>
-                        
+
                         <div class="space-y-4">
                             <!-- Current Photo -->
                             @if($user->profile_photo)
                                 <div class="relative inline-block">
-                                    <img src="{{ Storage::url($user->profile_photo) }}" 
-                                         alt="{{ $user->first_name }}" 
+                                    <img src="{{ Storage::url($user->profile_photo) }}"
+                                         alt="{{ $user->first_name }}"
                                          class="w-24 h-24 rounded-full object-cover border-2 border-gray-200">
-                                    <button type="button" onclick="document.getElementById('remove_photo').value='1'" 
+                                    <button type="button" onclick="document.getElementById('remove_photo').value='1'"
                                             class="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -198,11 +183,11 @@
                                     </svg>
                                 </div>
                             @endif
-                            
+
                             <!-- Upload New Photo -->
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1.5">Upload New Photo</label>
-                                <input type="file" name="profile_photo" accept="image/*" 
+                                <input type="file" name="profile_photo" accept="image/*"
                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-[#1a237e] focus:ring-2 focus:ring-[#1a237e]/20 outline-none transition-all text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#1a237e] file:text-white hover:file:bg-[#0d1445] cursor-pointer">
                                 <p class="text-xs text-gray-400 mt-1">Recommended: Square image, max 2MB</p>
                                 @error('profile_photo')
@@ -211,7 +196,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Account Settings -->
                     <div>
                         <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -221,7 +206,7 @@
                             </svg>
                             Account Settings
                         </h3>
-                        
+
                         <div class="space-y-4">
                             <!-- User Type -->
                             <div>
@@ -236,7 +221,7 @@
                                     <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
-                            
+
                             <!-- Status -->
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1.5">Account Status <span class="text-red-500">*</span></label>
@@ -250,11 +235,11 @@
                                     <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
-                            
+
                             <!-- Email Verification -->
                             <div>
                                 <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" name="email_verified" value="1" 
+                                    <input type="checkbox" name="email_verified" value="1"
                                            {{ old('email_verified', $user->email_verified_at ? true : false) ? 'checked' : '' }}
                                            class="rounded border-gray-300 text-[#1a237e] focus:ring-[#1a237e]">
                                     <span class="text-sm text-gray-700">Email Verified</span>
@@ -267,7 +252,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- ===== FORM ACTIONS ===== -->
             <div class="flex flex-wrap items-center gap-3 pt-6 mt-6 border-t border-gray-200">
                 <button type="submit" class="px-6 py-2.5 bg-[#1a237e] text-white font-medium rounded-lg hover:bg-[#0d1445] transition-all duration-200 shadow-sm hover:shadow-md flex items-center gap-2">
@@ -276,26 +261,12 @@
                     </svg>
                     Update User
                 </button>
-                <a href="{{ route('users.show', $user->id) }}" 
+                <a href="{{ route('users.show', $user->id) }}"
                    class="px-6 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-all duration-200">
                     Cancel
                 </a>
-                
-                @if(!$user->trashed())
-                    <button type="button" onclick="confirmDelete({{ $user->id }})" 
-                            class="ml-auto px-6 py-2.5 bg-red-500 text-white font-medium rounded-lg hover:bg-red-600 transition-all duration-200 shadow-sm hover:shadow-md flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                        </svg>
-                        Move to Trash
-                    </button>
-                    <form id="delete-form-{{ $user->id }}" 
-                          action="{{ route('users.destroy', $user->id) }}" 
-                          method="POST" class="hidden">
-                        @csrf
-                        @method('DELETE')
-                    </form>
-                @endif
+
+               
             </div>
         </form>
     </div>
