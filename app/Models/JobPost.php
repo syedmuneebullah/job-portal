@@ -124,4 +124,37 @@ class JobPost extends Model
         return $this->status === 'published' &&
                (!$this->closing_at || $this->closing_at > now());
     }
+    /**
+     * Get the users who saved this job.
+     */
+    public function savedByUsers()
+    {
+        return $this->belongsToMany(User::class, 'saved_jobs', 'job_post_id', 'user_id')
+                    ->withPivot('notes', 'status', 'applied_at')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Get the saved jobs record.
+     */
+    public function savedJobs()
+    {
+        return $this->hasMany(SavedJob::class, 'job_post_id');
+    }
+
+    /**
+     * Get the count of saves for this job.
+     */
+    public function getSavesCountAttribute()
+    {
+        return $this->savedJobs()->saved()->count();
+    }
+
+    /**
+     * Check if a specific user saved this job.
+     */
+    public function isSavedByUser($userId)
+    {
+        return $this->savedJobs()->where('user_id', $userId)->exists();
+    }
 }

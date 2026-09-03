@@ -8,10 +8,37 @@
                 <i class="fas fa-bars text-xl"></i>
             </button>
             
-            <!-- Page Title -->
-            <h1 class="text-xl font-bold text-[#1a237e] hidden sm:block">
-                @yield('page-title', 'Dashboard')
-            </h1>
+            <!-- Navigation Menu -->
+            <div class="md:flex items-center gap-1 ml-2">
+                <!-- Page Title -->
+                <h1 class="text-xl font-bold text-[#1a237e] hidden sm:block">
+                    @yield('page-title', 'Dashboard')
+                </h1>
+                
+                <!-- Menu Divider -->
+                <span class="hidden sm:block text-gray-300 mx-3">|</span>
+                
+                <!-- Find Jobs -->
+                <a href="{{ route('candidate.jobs.listings') }}" 
+                   class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-gray-600 hover:text-[#1a237e] hover:bg-gray-100 transition-all duration-200 text-sm font-medium">
+                    <i class="fas fa-search text-xs text-gray-400"></i>
+                    <span>Find Jobs</span>
+                </a>
+                
+                <!-- Find Companies -->
+                <a href="{{ route('candidate.employers.index') }}" 
+                   class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-gray-600 hover:text-[#1a237e] hover:bg-gray-100 transition-all duration-200 text-sm font-medium">
+                    <i class="fas fa-building text-xs text-gray-400"></i>
+                    <span>Find Companies</span>
+                </a>
+                
+                <!-- Find Recruiters -->
+                <a href="#" 
+                   class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-gray-600 hover:text-[#1a237e] hover:bg-gray-100 transition-all duration-200 text-sm font-medium">
+                    <i class="fas fa-user-tie text-xs text-gray-400"></i>
+                    <span>Find Recruiters</span>
+                </a>
+            </div>
         </div>
         
         <!-- Right Section -->
@@ -109,7 +136,7 @@
                             Settings
                         </a>
                         <hr class="my-1">
-                        <a href="{{route('auth.user.logout')}}" class="flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 transition-colors text-sm text-red-600">
+                        <a href="{{ route('auth.user.logout') }}" class="flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 transition-colors text-sm text-red-600">
                             <i class="fas fa-sign-out-alt text-red-400 w-5"></i>
                             Logout
                         </a>

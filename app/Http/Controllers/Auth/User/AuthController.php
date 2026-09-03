@@ -125,6 +125,8 @@ class AuthController extends Controller
             return redirect()->route('employer.dashboard');
         } elseif ($user->user_type === 'recruiter') {
             return redirect()->route('recruiter.dashboard');
+        }elseif ($user->user_type === 'job_seeker') {
+            return redirect()->route('candidate.dashboard');
         } else {
             return redirect()->route('user.home');
         }

@@ -289,4 +289,86 @@ class User extends Authenticatable
     {
         return !is_null($this->email_verified_at);
     }
+
+     /**
+     * Get the education records for the user.
+     */
+    public function educations()
+    {
+        return $this->hasMany(ApplicantEducation::class)->orderBy('start_date', 'desc');
+    }
+
+    /**
+     * Get the experience records for the user.
+     */
+    public function experiences()
+    {
+        return $this->hasMany(ApplicantExperience::class)->orderBy('start_date', 'desc');
+    }
+
+    /**
+     * Get the certificate records for the user.
+     */
+    public function certificates()
+    {
+        return $this->hasMany(ApplicantCertificate::class)->orderBy('start_date', 'desc');
+    }
+
+    /**
+     * Get the latest education record.
+     */
+    public function latestEducation()
+    {
+        return $this->hasOne(ApplicantEducation::class)->latest('start_date');
+    }
+
+    /**
+     * Get the latest experience record.
+     */
+    public function latestExperience()
+    {
+        return $this->hasOne(ApplicantExperience::class)->latest('start_date');
+    }
+
+    /**
+     * Get the latest certificate record.
+     */
+    public function latestCertificate()
+    {
+        return $this->hasOne(ApplicantCertificate::class)->latest('start_date');
+    }
+
+    /**
+     * Get the saved jobs for the user.
+     */
+    public function savedJobs()
+    {
+        return $this->hasMany(SavedJob::class);
+    }
+
+    /**
+     * Get the saved job posts directly.
+     */
+    public function savedJobPosts()
+    {
+        return $this->belongsToMany(JobPost::class, 'saved_jobs', 'user_id', 'job_post_id')
+                    ->withPivot('notes', 'status', 'applied_at')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Check if user has saved a specific job.
+     */
+    public function hasSavedJob($jobPostId)
+    {
+        return $this->savedJobs()->where('job_post_id', $jobPostId)->exists();
+    }
+
+    /**
+     * Get user's saved jobs count.
+     */
+    public function getSavedJobsCountAttribute()
+    {
+        return $this->savedJobs()->saved()->count();
+    }
 }
