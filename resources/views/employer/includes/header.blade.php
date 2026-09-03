@@ -109,7 +109,7 @@
                             Settings
                         </a>
                         <hr class="my-1">
-                        <a href="#" class="flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 transition-colors text-sm text-red-600">
+                        <a href="{{route('auth.user.logout')}}" class="flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 transition-colors text-sm text-red-600">
                             <i class="fas fa-sign-out-alt text-red-400 w-5"></i>
                             Logout
                         </a>
