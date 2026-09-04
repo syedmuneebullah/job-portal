@@ -169,8 +169,8 @@
                         View activity
                     </a>
                 @else
-                    <a href="#" class="inline-flex items-center gap-2 px-5 py-1.5 bg-[#1a237e] hover:bg-[#131b63] text-white text-sm font-semibold rounded-full transition-colors">
-                        View activity
+                    <a href="{{route('candidate.cv.builder')}}" class="inline-flex items-center gap-2 px-5 py-1.5 bg-[#1a237e] hover:bg-[#131b63] text-white text-sm font-semibold rounded-full transition-colors">
+                        Generate Professional CV
                     </a>
                 @endif
                 <a href="#" class="inline-flex items-center gap-2 px-5 py-1.5 border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-semibold rounded-full transition-colors">

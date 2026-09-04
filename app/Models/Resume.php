@@ -1,4 +1,5 @@
 <?php
+// app/Models/Resume.php
 
 namespace App\Models;
 
@@ -12,11 +13,19 @@ class Resume extends Model
 
     protected $fillable = [
         'user_id',
+        'cv_template_id',
+        'cv_template_color_id',
+        'content',
+        'customizations',
+        'selected_sections',
         'title',
         'file_path',
         'original_name',
         'file_size',
         'mime_type',
+        'status',
+        'version',
+        'last_generated_at',
         'is_active',
         'is_primary',
         'parsed_data',
@@ -25,11 +34,15 @@ class Resume extends Model
     ];
 
     protected $casts = [
+        'content' => 'array',
+        'customizations' => 'array',
+        'selected_sections' => 'array',
+        'parsed_data' => 'array',
         'is_active' => 'boolean',
         'is_primary' => 'boolean',
-        'parsed_data' => 'array',
         'parsed_at' => 'datetime',
         'uploaded_at' => 'datetime',
+        'last_generated_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
@@ -47,6 +60,22 @@ class Resume extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    /**
+     * Get the template associated with this resume/CV
+     */
+    public function template()
+    {
+        return $this->belongsTo(CvTemplate::class, 'cv_template_id');
+    }
+
+    /**
+     * Get the color scheme associated with this resume/CV
+     */
+    public function color()
+    {
+        return $this->belongsTo(CvTemplateColor::class, 'cv_template_color_id');
+    }
+
     // ===== SCOPES =====
 
     public function scopeActive($query)
@@ -57,6 +86,16 @@ class Resume extends Model
     public function scopePrimary($query)
     {
         return $query->where('is_primary', true);
+    }
+
+    public function scopeCompleted($query)
+    {
+        return $query->where('status', 'completed');
+    }
+
+    public function scopeDraft($query)
+    {
+        return $query->where('status', 'draft');
     }
 
     // ===== ACCESSORS =====
@@ -85,5 +124,34 @@ class Resume extends Model
         }
 
         return round($size, 2) . ' ' . $units[$i];
+    }
+
+    /**
+     * Get the template name
+     */
+    public function getTemplateNameAttribute()
+    {
+        return $this->template ? $this->template->name : 'N/A';
+    }
+
+    /**
+     * Get the status badge color
+     */
+    public function getStatusBadgeAttribute()
+    {
+        $colors = [
+            'draft' => 'bg-gray-100 text-gray-700',
+            'completed' => 'bg-emerald-100 text-emerald-700',
+            'published' => 'bg-blue-100 text-blue-700',
+        ];
+        return $colors[$this->status] ?? 'bg-gray-100 text-gray-700';
+    }
+
+    /**
+     * Get the status label
+     */
+    public function getStatusLabelAttribute()
+    {
+        return ucfirst($this->status);
     }
 }

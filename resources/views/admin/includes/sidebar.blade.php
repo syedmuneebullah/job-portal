@@ -106,12 +106,12 @@
                 </a>
             </div>
             
-            <!-- Categories -->
+            <!-- CV Templates -->
             <div class="nav-item">
-                <a href="#" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:text-[#1a237e] hover:bg-gray-100 transition-all duration-200 group">
+                <a href="{{route('admin.cv-templates.index')}}" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:text-[#1a237e] hover:bg-gray-100 transition-all duration-200 group">
                     <i class="fas fa-tags w-5 text-center text-sm text-gray-400 group-hover:text-[#FF7543]"></i>
-                    <span class="nav-link-text text-sm font-medium">Categories</span>
-                    <span class="nav-tooltip">Categories</span>
+                    <span class="nav-link-text text-sm font-medium">CV Templates</span>
+                    <span class="nav-tooltip">CV Templates</span>
                 </a>
             </div>
             
