@@ -14,14 +14,14 @@
                 <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium
                     @if($application->status === 'pending') bg-amber-50 text-amber-700
                     @elseif($application->status === 'shortlisted') bg-blue-50 text-blue-700
-                    @elseif($application->status === 'interviewing') bg-purple-50 text-purple-700
+                    @elseif($application->status === 'interview') bg-purple-50 text-purple-700
                     @elseif($application->status === 'hired') bg-emerald-50 text-emerald-700
                     @elseif($application->status === 'rejected') bg-red-50 text-red-700
                     @endif">
                     <span class="w-1.5 h-1.5 rounded-full mr-1.5
                         @if($application->status === 'pending') bg-amber-500
                         @elseif($application->status === 'shortlisted') bg-blue-500
-                        @elseif($application->status === 'interviewing') bg-purple-500
+                        @elseif($application->status === 'interview') bg-purple-500
                         @elseif($application->status === 'hired') bg-emerald-500
                         @elseif($application->status === 'rejected') bg-red-500
                         @endif"></span>
@@ -55,14 +55,14 @@
                     <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium
                         @if($application->status === 'pending') bg-amber-50 text-amber-700
                         @elseif($application->status === 'shortlisted') bg-blue-50 text-blue-700
-                        @elseif($application->status === 'interviewing') bg-purple-50 text-purple-700
+                        @elseif($application->status === 'interview') bg-purple-50 text-purple-700
                         @elseif($application->status === 'hired') bg-emerald-50 text-emerald-700
                         @elseif($application->status === 'rejected') bg-red-50 text-red-700
                         @endif">
                         <span class="w-1.5 h-1.5 rounded-full mr-1.5
                             @if($application->status === 'pending') bg-amber-500
                             @elseif($application->status === 'shortlisted') bg-blue-500
-                            @elseif($application->status === 'interviewing') bg-purple-500
+                            @elseif($application->status === 'interview') bg-purple-500
                             @elseif($application->status === 'hired') bg-emerald-500
                             @elseif($application->status === 'rejected') bg-red-500
                             @endif"></span>
@@ -206,7 +206,7 @@
                             @if($application->status === 'hired') bg-emerald-500
                             @elseif($application->status === 'rejected') bg-red-500
                             @elseif($application->status === 'shortlisted') bg-blue-500
-                            @elseif($application->status === 'interviewing') bg-purple-500
+                            @elseif($application->status === 'interview') bg-purple-500
                             @else bg-amber-500
                             @endif ring-4 ring-white">
                         </div>
@@ -216,7 +216,7 @@
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium mt-1
                                 @if($application->status === 'pending') bg-amber-50 text-amber-700
                                 @elseif($application->status === 'shortlisted') bg-blue-50 text-blue-700
-                                @elseif($application->status === 'interviewing') bg-purple-50 text-purple-700
+                                @elseif($application->status === 'interview') bg-purple-50 text-purple-700
                                 @elseif($application->status === 'hired') bg-emerald-50 text-emerald-700
                                 @elseif($application->status === 'rejected') bg-red-50 text-red-700
                                 @endif">
@@ -292,8 +292,8 @@
     </div>
 </div>
 
-<!-- ===== STATUS UPDATE MODAL (Profile style) ===== -->
-<div id="statusModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4">
+<!-- ===== STATUS UPDATE MODAL (Centered) ===== -->
+<div id="statusModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4 flex">
     <div class="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
             <h3 class="text-lg font-semibold text-gray-900">Update Application Status</h3>
@@ -311,7 +311,7 @@
                 <select id="statusSelect" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0a66c2] focus:border-transparent outline-none">
                     <option value="pending" {{ $application->status == 'pending' ? 'selected' : '' }}>Pending</option>
                     <option value="shortlisted" {{ $application->status == 'shortlisted' ? 'selected' : '' }}>Shortlisted</option>
-                    <option value="interviewing" {{ $application->status == 'interviewing' ? 'selected' : '' }}>Interviewing</option>
+                    <option value="interview" {{ $application->status == 'interview' ? 'selected' : '' }}>Interview</option>
                     <option value="hired" {{ $application->status == 'hired' ? 'selected' : '' }}>Hired</option>
                     <option value="rejected" {{ $application->status == 'rejected' ? 'selected' : '' }}>Rejected</option>
                 </select>
@@ -335,46 +335,22 @@
         </div>
     </div>
 </div>
-
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    // ===== TOAST NOTIFICATION =====
-    function showToast(message, type = 'success') {
-        const colors = {
-            success: 'bg-emerald-500',
-            error: 'bg-red-500',
-            info: 'bg-blue-500',
-            warning: 'bg-amber-500'
-        };
-
-        const toast = document.createElement('div');
-        toast.className = `fixed top-4 right-4 z-[9999] px-6 py-3 rounded-lg text-white text-sm font-medium ${colors[type] || colors.success} shadow-lg transform transition-all duration-300 translate-x-full`;
-        toast.textContent = message;
-        document.body.appendChild(toast);
-
-        setTimeout(() => {
-            toast.classList.remove('translate-x-full');
-        }, 10);
-
-        setTimeout(() => {
-            toast.classList.add('translate-x-full');
-            setTimeout(() => {
-                toast.remove();
-            }, 300);
-        }, 3000);
+    // ===== OPEN STATUS MODAL (Centered) =====
+    function openStatusModal() {
+        const modal = document.getElementById('statusModal');
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex'; // Ensure flex display for centering
+        document.body.style.overflow = 'hidden';
     }
 
-    function openStatusModal() {
-    const modal = document.getElementById('statusModal');
-    modal.classList.remove('hidden');  // ✅ Remove hidden class
-    document.body.style.overflow = 'hidden';
-}
-
-function closeStatusModal() {
-    const modal = document.getElementById('statusModal');
-    modal.classList.add('hidden');  // ✅ Add hidden class back
-    document.body.style.overflow = '';
-}
+    function closeStatusModal() {
+        const modal = document.getElementById('statusModal');
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }
 
     // Close modal on backdrop click
     document.addEventListener('DOMContentLoaded', function() {
@@ -392,7 +368,7 @@ function closeStatusModal() {
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             const modal = document.getElementById('statusModal');
-            if (modal && modal.style.display === 'flex') {
+            if (modal && !modal.classList.contains('hidden')) {
                 closeStatusModal();
             }
         }
@@ -463,6 +439,32 @@ function closeStatusModal() {
             });
         }
     });
+
+    // ===== TOAST NOTIFICATION =====
+    function showToast(message, type = 'success') {
+        const colors = {
+            success: 'bg-emerald-500',
+            error: 'bg-red-500',
+            info: 'bg-blue-500',
+            warning: 'bg-amber-500'
+        };
+
+        const toast = document.createElement('div');
+        toast.className = `fixed top-4 right-4 z-[9999] px-6 py-3 rounded-lg text-white text-sm font-medium ${colors[type] || colors.success} shadow-lg transform transition-all duration-300 translate-x-full`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.classList.remove('translate-x-full');
+        }, 10);
+
+        setTimeout(() => {
+            toast.classList.add('translate-x-full');
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }, 3000);
+    }
 </script>
 
 @endsection

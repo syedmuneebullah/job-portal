@@ -332,7 +332,7 @@ class JobController extends Controller
             'total_applications' => $job->applications()->count(),
             'pending_applications' => $job->applications()->where('status', 'pending')->count(),
             'shortlisted' => $job->applications()->where('status', 'shortlisted')->count(),
-            'interviewing' => $job->applications()->where('status', 'interviewing')->count(),
+            'interview' => $job->applications()->where('status', 'interview')->count(),
             'hired' => $job->applications()->where('status', 'hired')->count(),
             'rejected' => $job->applications()->where('status', 'rejected')->count(),
         ];
@@ -978,9 +978,9 @@ class JobController extends Controller
                 $q->where('employer_id', $employer->id);
             })->where('status', 'shortlisted')->count(),
 
-            'interviewing' => Application::whereHas('jobPost', function($q) use ($employer) {
+            'interview' => Application::whereHas('jobPost', function($q) use ($employer) {
                 $q->where('employer_id', $employer->id);
-            })->where('status', 'interviewing')->count(),
+            })->where('status', 'interview')->count(),
 
             'hired' => Application::whereHas('jobPost', function($q) use ($employer) {
                 $q->where('employer_id', $employer->id);
@@ -1087,7 +1087,7 @@ class JobController extends Controller
             'total' => Application::where('job_post_id', $jobId)->count(),
             'pending' => Application::where('job_post_id', $jobId)->where('status', 'pending')->count(),
             'shortlisted' => Application::where('job_post_id', $jobId)->where('status', 'shortlisted')->count(),
-            'interviewing' => Application::where('job_post_id', $jobId)->where('status', 'interviewing')->count(),
+            'interview' => Application::where('job_post_id', $jobId)->where('status', 'interview')->count(),
             'hired' => Application::where('job_post_id', $jobId)->where('status', 'hired')->count(),
             'rejected' => Application::where('job_post_id', $jobId)->where('status', 'rejected')->count(),
         ];
@@ -1164,7 +1164,7 @@ class JobController extends Controller
     public function updateApplicationStatus(Request $request, $applicationId)
     {
         $request->validate([
-            'status' => 'required|in:pending,shortlisted,interviewing,hired,rejected',
+            'status' => 'required|in:pending,shortlisted,interview,hired,rejected',
             'notes' => 'nullable|string|max:1000'
         ]);
 
@@ -1226,7 +1226,7 @@ class JobController extends Controller
         $request->validate([
             'ids' => 'required|array',
             'ids.*' => 'exists:applications,id',
-            'status' => 'required|in:pending,shortlisted,interviewing,hired,rejected'
+            'status' => 'required|in:pending,shortlisted,interview,hired,rejected'
         ]);
 
         // Get the authenticated user ID
@@ -1471,9 +1471,9 @@ class JobController extends Controller
                     $q->where('employer_id', $employer->id);
                 })->where('status', 'shortlisted')->count(),
 
-                'interviewing' => Application::whereHas('jobPost', function($q) use ($employer) {
+                'interview' => Application::whereHas('jobPost', function($q) use ($employer) {
                     $q->where('employer_id', $employer->id);
-                })->where('status', 'interviewing')->count(),
+                })->where('status', 'interview')->count(),
 
                 'hired' => Application::whereHas('jobPost', function($q) use ($employer) {
                     $q->where('employer_id', $employer->id);

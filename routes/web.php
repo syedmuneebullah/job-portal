@@ -6,12 +6,14 @@ use App\Http\Controllers\Auth\User\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EmployersController;
 use App\Http\Controllers\Admin\UsersController;
+use App\Http\Controllers\Admin\CvTemplateController;
 use App\Http\Controllers\Admin\JobController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Employer\DashboardController as EmployerDashboard;
 use App\Http\Controllers\Employer\JobController as EmployerJob;
 use App\Http\Controllers\JobSeeker\DashboardController as CandidateDashboard;
 use App\Http\Controllers\JobSeeker\ProfileController;
+use App\Http\Controllers\JobSeeker\CvController;
 use App\Http\Controllers\JobSeeker\JobController as JobSeekerJobController;
 use App\Http\Controllers\JobSeeker\EmployersController as JobSeekerEmployerController;
 
@@ -96,6 +98,11 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->name('admin.')->group(func
     Route::post('subscriptions/{id}/activate', [SubscriptionController::class, 'activateSubscription'])->name('subscriptions.activate');
     Route::post('subscriptions/{id}/extend', [SubscriptionController::class, 'extendSubscription'])->name('subscriptions.extend');
     Route::post('subscriptions/bulk-update', [SubscriptionController::class, 'bulkSubscriptionUpdate'])->name('subscriptions.bulk-update');
+   
+    // CV Templates
+    Route::resource('cv-templates', CvTemplateController::class);
+    Route::get('cv-templates/{cvTemplate}/preview', [CvTemplateController::class, 'preview'])
+        ->name('cv-templates.preview');
 });
 
 // ============================================================
@@ -231,6 +238,17 @@ Route::middleware(['auth:sanctum'])->prefix('candidate')->name('candidate.')->gr
     Route::get('/employers/{id}', [JobSeekerEmployerController::class, 'show'])->name('employers.show');
     Route::get('/employers/featured', [JobSeekerEmployerController::class, 'featured'])->name('employers.featured');
     Route::get('/employers/{id}/jobs', [JobSeekerEmployerController::class, 'employerJobs'])->name('employers.jobs');
+
+    Route::prefix('cv')->name('cv.')->group(function () {
+        Route::get('builder', [CVController::class, 'builder'])->name('builder');
+        Route::post('preview', [CVController::class, 'preview'])->name('preview');
+        Route::post('download', [CVController::class, 'download'])->name('download');
+        Route::get('download-html/{id}', [CVController::class, 'downloadHtml'])->name('download-html');
+        Route::post('save', [CVController::class, 'save'])->name('save');
+        Route::get('show/{id}', [CVController::class, 'show'])->name('show');
+        Route::delete('delete/{id}', [CVController::class, 'destroy'])->name('destroy');
+        Route::get('templates', [CVController::class, 'getTemplates'])->name('templates');
+    });
 });
 
 // ============================================================
