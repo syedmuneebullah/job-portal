@@ -36,7 +36,7 @@ class User extends Authenticatable
     ];
 
     // ===== RELATIONSHIPS =====
-    
+
     // Profile relationships
     public function employer()
     {
@@ -53,7 +53,40 @@ class User extends Authenticatable
         return $this->hasOne(ApplicantProfile::class);
     }
 
-    // Job relationships
+    // ===== RESUME RELATIONSHIP =====
+    /**
+     * Get the resume for the user (applicant).
+     */
+    public function resume()
+    {
+        return $this->hasOne(Resume::class, 'user_id');
+    }
+
+    /**
+     * Get the resumes for the user (if multiple resumes are allowed).
+     */
+    public function resumes()
+    {
+        return $this->hasMany(Resume::class, 'user_id');
+    }
+
+    /**
+     * Get the active/primary resume for the user.
+     */
+    public function activeResume()
+    {
+        return $this->hasOne(Resume::class, 'user_id')->where('is_active', true);
+    }
+
+    /**
+     * Get the default/primary resume for the user.
+     */
+    public function primaryResume()
+    {
+        return $this->hasOne(Resume::class, 'user_id')->where('is_primary', true);
+    }
+
+    // ===== JOB RELATIONSHIPS =====
     public function jobPosts()
     {
         return $this->hasMany(JobPost::class, 'employer_id');
@@ -64,20 +97,18 @@ class User extends Authenticatable
         return $this->hasMany(JobPost::class, 'recruiter_id');
     }
 
-    // Alias for jobPosts (for backward compatibility)
     public function jobs()
     {
         return $this->hasMany(JobPost::class, 'employer_id');
     }
 
-    // Get all jobs (employer + recruiter)
     public function getAllJobs()
     {
         return JobPost::where('employer_id', $this->id)
             ->orWhere('recruiter_id', $this->id);
     }
 
-    // Application relationships
+    // ===== APPLICATION RELATIONSHIPS =====
     public function applications()
     {
         return $this->hasMany(Application::class, 'applicant_id');
@@ -88,13 +119,13 @@ class User extends Authenticatable
         return $this->hasMany(Application::class, 'employer_id');
     }
 
-    // Team relationships
+    // ===== TEAM RELATIONSHIPS =====
     public function teamMembers()
     {
         return $this->hasMany(EmployerTeamMember::class);
     }
 
-    // Message relationships
+    // ===== MESSAGE RELATIONSHIPS =====
     public function messages()
     {
         return $this->hasMany(Message::class, 'sender_id');
@@ -105,7 +136,7 @@ class User extends Authenticatable
         return $this->hasMany(Message::class, 'receiver_id');
     }
 
-    // Interview relationships
+    // ===== INTERVIEW RELATIONSHIPS =====
     public function interviews()
     {
         return $this->hasMany(Interview::class, 'employer_id');
@@ -121,7 +152,7 @@ class User extends Authenticatable
         return $this->hasMany(Interview::class, 'recruiter_id');
     }
 
-    // Subscription & Payment
+    // ===== SUBSCRIPTION & PAYMENT =====
     public function subscriptions()
     {
         return $this->hasMany(UserSubscription::class);
@@ -137,7 +168,7 @@ class User extends Authenticatable
         return $this->hasMany(Invoice::class);
     }
 
-    // Notification & Settings
+    // ===== NOTIFICATION & SETTINGS =====
     public function notifications()
     {
         return $this->hasMany(Notification::class);
@@ -158,7 +189,7 @@ class User extends Authenticatable
         return $this->hasMany(IntegrationSetting::class);
     }
 
-    // Job seeker features
+    // ===== JOB SEEKER FEATURES =====
     public function savedSearches()
     {
         return $this->hasMany(SavedSearch::class);
@@ -169,7 +200,7 @@ class User extends Authenticatable
         return $this->hasMany(JobAlert::class);
     }
 
-    // Resume & Reports
+    // ===== RESUME & REPORTS =====
     public function resumeParserJobs()
     {
         return $this->hasMany(ResumeParserJob::class);
@@ -180,7 +211,7 @@ class User extends Authenticatable
         return $this->hasMany(Report::class);
     }
 
-    // Admin/Approval
+    // ===== ADMIN/APPROVAL =====
     public function approvedRecruiters()
     {
         return $this->hasMany(Recruiter::class, 'approved_by');
@@ -191,8 +222,61 @@ class User extends Authenticatable
         return $this->hasMany(AuditLog::class);
     }
 
+    // ===== EDUCATION, EXPERIENCE, CERTIFICATES =====
+    public function educations()
+    {
+        return $this->hasMany(ApplicantEducation::class)->orderBy('start_date', 'desc');
+    }
+
+    public function experiences()
+    {
+        return $this->hasMany(ApplicantExperience::class)->orderBy('start_date', 'desc');
+    }
+
+    public function certificates()
+    {
+        return $this->hasMany(ApplicantCertificate::class)->orderBy('start_date', 'desc');
+    }
+
+    public function latestEducation()
+    {
+        return $this->hasOne(ApplicantEducation::class)->latest('start_date');
+    }
+
+    public function latestExperience()
+    {
+        return $this->hasOne(ApplicantExperience::class)->latest('start_date');
+    }
+
+    public function latestCertificate()
+    {
+        return $this->hasOne(ApplicantCertificate::class)->latest('start_date');
+    }
+
+    // ===== SAVED JOBS =====
+    public function savedJobs()
+    {
+        return $this->hasMany(SavedJob::class);
+    }
+
+    public function savedJobPosts()
+    {
+        return $this->belongsToMany(JobPost::class, 'saved_jobs', 'user_id', 'job_post_id')
+                    ->withPivot('notes', 'status', 'applied_at')
+                    ->withTimestamps();
+    }
+
+    public function hasSavedJob($jobPostId)
+    {
+        return $this->savedJobs()->where('job_post_id', $jobPostId)->exists();
+    }
+
+    public function getSavedJobsCountAttribute()
+    {
+        return $this->savedJobs()->saved()->count();
+    }
+
     // ===== ACCESSORS =====
-    
     public function getFullNameAttribute()
     {
         return $this->first_name . ' ' . $this->last_name;
@@ -211,8 +295,26 @@ class User extends Authenticatable
         return null;
     }
 
+    /**
+     * Get the resume file URL.
+     */
+    public function getResumeUrlAttribute()
+    {
+        if ($this->resume && $this->resume->file_path) {
+            return asset('storage/' . $this->resume->file_path);
+        }
+        return null;
+    }
+
+    /**
+     * Check if the user has a resume uploaded.
+     */
+    public function getHasResumeAttribute()
+    {
+        return $this->resume()->exists();
+    }
+
     // ===== SCOPES =====
-    
     public function scopeActive($query)
     {
         return $query->where('status', 'active');
@@ -248,8 +350,12 @@ class User extends Authenticatable
         return $query->whereNull('email_verified_at');
     }
 
+    public function scopeHasResume($query)
+    {
+        return $query->whereHas('resume');
+    }
+
     // ===== HELPER METHODS =====
-    
     public function isEmployer()
     {
         return $this->user_type === 'employer';
@@ -288,87 +394,5 @@ class User extends Authenticatable
     public function isVerified()
     {
         return !is_null($this->email_verified_at);
-    }
-
-     /**
-     * Get the education records for the user.
-     */
-    public function educations()
-    {
-        return $this->hasMany(ApplicantEducation::class)->orderBy('start_date', 'desc');
-    }
-
-    /**
-     * Get the experience records for the user.
-     */
-    public function experiences()
-    {
-        return $this->hasMany(ApplicantExperience::class)->orderBy('start_date', 'desc');
-    }
-
-    /**
-     * Get the certificate records for the user.
-     */
-    public function certificates()
-    {
-        return $this->hasMany(ApplicantCertificate::class)->orderBy('start_date', 'desc');
-    }
-
-    /**
-     * Get the latest education record.
-     */
-    public function latestEducation()
-    {
-        return $this->hasOne(ApplicantEducation::class)->latest('start_date');
-    }
-
-    /**
-     * Get the latest experience record.
-     */
-    public function latestExperience()
-    {
-        return $this->hasOne(ApplicantExperience::class)->latest('start_date');
-    }
-
-    /**
-     * Get the latest certificate record.
-     */
-    public function latestCertificate()
-    {
-        return $this->hasOne(ApplicantCertificate::class)->latest('start_date');
-    }
-
-    /**
-     * Get the saved jobs for the user.
-     */
-    public function savedJobs()
-    {
-        return $this->hasMany(SavedJob::class);
-    }
-
-    /**
-     * Get the saved job posts directly.
-     */
-    public function savedJobPosts()
-    {
-        return $this->belongsToMany(JobPost::class, 'saved_jobs', 'user_id', 'job_post_id')
-                    ->withPivot('notes', 'status', 'applied_at')
-                    ->withTimestamps();
-    }
-
-    /**
-     * Check if user has saved a specific job.
-     */
-    public function hasSavedJob($jobPostId)
-    {
-        return $this->savedJobs()->where('job_post_id', $jobPostId)->exists();
-    }
-
-    /**
-     * Get user's saved jobs count.
-     */
-    public function getSavedJobsCountAttribute()
-    {
-        return $this->savedJobs()->saved()->count();
     }
 }
