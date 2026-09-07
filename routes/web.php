@@ -2,15 +2,20 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\User\HomeController;
+use App\Http\Controllers\ZoomController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ResumeController;
+use App\Http\Controllers\MatchController;
 use App\Http\Controllers\Auth\User\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EmployersController;
 use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\Admin\CvTemplateController;
-use App\Http\Controllers\Admin\JobController;
+use App\Http\Controllers\Admin\JobController as AdminJobController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Employer\DashboardController as EmployerDashboard;
 use App\Http\Controllers\Employer\JobController as EmployerJob;
+use App\Http\Controllers\Employer\InterviewController as EmployerInterviewed;
 use App\Http\Controllers\JobSeeker\DashboardController as CandidateDashboard;
 use App\Http\Controllers\JobSeeker\ProfileController;
 use App\Http\Controllers\JobSeeker\CvController;
@@ -70,18 +75,18 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->name('admin.')->group(func
     Route::post('users/{id}/verify-email', [UsersController::class, 'verifyEmail'])->name('users.verify-email');
 
     // Admin Jobs Management
-    Route::resource('jobs', JobController::class);
-    Route::post('jobs/bulk-delete', [JobController::class, 'bulkDelete'])->name('jobs.bulk-delete');
-    Route::post('jobs/bulk-status', [JobController::class, 'bulkStatusUpdate'])->name('jobs.bulk-status');
-    Route::get('jobs/statistics', [JobController::class, 'statistics'])->name('jobs.statistics');
-    Route::get('jobs/export', [JobController::class, 'export'])->name('jobs.export');
-    Route::patch('jobs/{id}/restore', [JobController::class, 'restore'])->name('jobs.restore');
-    Route::delete('jobs/{id}/force-delete', [JobController::class, 'forceDelete'])->name('jobs.force-delete');
-    Route::patch('jobs/{id}/toggle-status', [JobController::class, 'toggleStatus'])->name('jobs.toggle-status');
-    Route::post('jobs/{id}/duplicate', [JobController::class, 'duplicate'])->name('jobs.duplicate');
-    Route::post('jobs/bulk-restore', [JobController::class, 'bulkRestore'])->name('jobs.bulk-restore');
-    Route::post('jobs/bulk-force-delete', [JobController::class, 'bulkForceDelete'])->name('jobs.bulk-force-delete');
-    Route::post('jobs/bulk-status-update', [JobController::class, 'bulkStatusUpdate'])->name('jobs.bulk-status-update');
+    Route::resource('jobs', AdminJobController::class);
+    Route::post('jobs/bulk-delete', [AdminJobController::class, 'bulkDelete'])->name('jobs.bulk-delete');
+    Route::post('jobs/bulk-status', [AdminJobController::class, 'bulkStatusUpdate'])->name('jobs.bulk-status');
+    Route::get('jobs/statistics', [AdminJobController::class, 'statistics'])->name('jobs.statistics');
+    Route::get('jobs/export', [AdminJobController::class, 'export'])->name('jobs.export');
+    Route::patch('jobs/{id}/restore', [AdminJobController::class, 'restore'])->name('jobs.restore');
+    Route::delete('jobs/{id}/force-delete', [AdminJobController::class, 'forceDelete'])->name('jobs.force-delete');
+    Route::patch('jobs/{id}/toggle-status', [AdminJobController::class, 'toggleStatus'])->name('jobs.toggle-status');
+    Route::post('jobs/{id}/duplicate', [AdminJobController::class, 'duplicate'])->name('jobs.duplicate');
+    Route::post('jobs/bulk-restore', [AdminJobController::class, 'bulkRestore'])->name('jobs.bulk-restore');
+    Route::post('jobs/bulk-force-delete', [AdminJobController::class, 'bulkForceDelete'])->name('jobs.bulk-force-delete');
+    Route::post('jobs/bulk-status-update', [AdminJobController::class, 'bulkStatusUpdate'])->name('jobs.bulk-status-update');
 
     // Subscription Plans Management
     Route::resource('subscription-plans', SubscriptionController::class);
@@ -153,31 +158,66 @@ Route::middleware(['auth:sanctum'])->prefix('employer')->name('employer.')->grou
     Route::prefix('applications')->name('applications.')->group(function () {
         // Main applications listing
         Route::get('/', [EmployerJob::class, 'getEmployerApplications'])->name('index');
-
-        // View specific application
+        Route::get('/interview', [EmployerInterviewed::class, 'Applications'])->name('interview');
+        Route::post('/{applicationId}/schedule-interview', [EmployerInterviewed::class, 'scheduleInterview'])->name('schedule-interview');
+        Route::get('/{applicationId}/interview-details', [EmployerInterviewed::class, 'getInterviewDetails'])->name('interview-details');
         Route::get('/{applicationId}', [EmployerJob::class, 'showApplication'])->name('show');
-
-        // Job-specific applications
         Route::get('/job/{jobId}', [EmployerJob::class, 'getJobApplications'])->name('job');
-
-        // Status management
         Route::put('/{applicationId}/status', [EmployerJob::class, 'updateApplicationStatus'])->name('update-status');
-
-        // Bulk operations
         Route::post('/bulk-status', [EmployerJob::class, 'bulkUpdateApplicationStatus'])->name('bulk-status');
         Route::delete('/bulk-delete', [EmployerJob::class, 'bulkDeleteApplications'])->name('bulk-delete');
-
-        // Delete single application
         Route::delete('/{applicationId}', [EmployerJob::class, 'destroyApplication'])->name('destroy');
-
-        // Export applications
         Route::get('/export', [EmployerJob::class, 'exportApplications'])->name('export');
-
-        // Statistics
         Route::get('/stats', [EmployerJob::class, 'getApplicationStats'])->name('stats');
-
-        // Resume download
         Route::get('/{applicationId}/download-resume', [EmployerJob::class, 'downloadResume'])->name('download-resume');
+    });
+
+    // ============================================================
+    // INTERVIEW MANAGEMENT ROUTES
+    // ============================================================
+    Route::prefix('interviews')->name('interviews.')->group(function () {
+        Route::get('/', [EmployerInterviewed::class, 'scheduledInterviews'])->name('index');
+        Route::get('/list', [EmployerInterviewed::class, 'getScheduledInterviews'])->name('list');
+        Route::get('/upcoming', [EmployerInterviewed::class, 'getUpcomingInterviews'])->name('upcoming');
+        Route::post('/{id}/cancel', [EmployerInterviewed::class, 'cancelInterview'])->name('cancel');
+        Route::put('/{id}/reschedule', [EmployerInterviewed::class, 'rescheduleInterview'])->name('reschedule');
+        Route::post('/{id}/complete', [EmployerInterviewed::class, 'completeInterview'])->name('complete');
+        Route::get('/application/{applicationId}', [EmployerInterviewed::class, 'getInterviewDetails'])->name('details');
+        Route::post('/send-reminders', [EmployerInterviewed::class, 'sendReminders'])->name('send-reminders');
+    });
+
+    // ============================================================
+    // MATCH MANAGEMENT ROUTES - Using root MatchController (NOT Employer\MatchController)
+    // ============================================================
+    Route::prefix('matches')->name('matches.')->group(function () {
+        Route::get('/dashboard', [MatchController::class, 'dashboard'])->name('dashboard');
+        Route::get('/', [MatchController::class, 'allMatches'])->name('all');
+        Route::get('/job/{jobId}', [MatchController::class, 'jobMatches'])->name('job');
+        Route::get('/{matchId}', [MatchController::class, 'show'])->name('show');
+        Route::get('/{matchId}/recommendations', [MatchController::class, 'getRecommendations'])->name('recommendations');
+        Route::post('/{matchId}/shortlist', [MatchController::class, 'shortlist'])->name('shortlist');
+        Route::post('/{matchId}/unshortlist', [MatchController::class, 'unshortlist'])->name('unshortlist');
+        Route::post('/bulk-shortlist', [MatchController::class, 'bulkShortlist'])->name('bulk-shortlist');
+        Route::post('/{matchId}/view', [MatchController::class, 'markAsViewed'])->name('view');
+        Route::post('/{matchId}/notes', [MatchController::class, 'addNotes'])->name('add-notes');
+        Route::get('/export', [MatchController::class, 'export'])->name('export');
+        Route::get('/{matchId}/export', [MatchController::class, 'exportMatch'])->name('export-match');
+        Route::get('/reports/hiring-pipeline', [MatchController::class, 'hiringPipeline'])->name('hiring-pipeline');
+        Route::get('/reports/analytics', [MatchController::class, 'matchAnalytics'])->name('analytics');
+    });
+
+    // ============================================================
+    // NOTIFICATION ROUTES (EMPLOYER)
+    // ============================================================
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [NotificationController::class, 'index'])->name('index');
+        Route::get('/latest', [NotificationController::class, 'latest'])->name('latest');
+        Route::get('/unread-count', [NotificationController::class, 'unreadCount'])->name('unread-count');
+        Route::post('/{id}/mark-read', [NotificationController::class, 'markAsRead'])->name('mark-read');
+        Route::post('/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('mark-all-read');
+        Route::get('/{id}', [NotificationController::class, 'show'])->name('show');
+        Route::delete('/{id}', [NotificationController::class, 'destroy'])->name('destroy');
+        Route::delete('/read/delete', [NotificationController::class, 'deleteRead'])->name('delete-read');
     });
 
     // ============================================================
@@ -239,15 +279,53 @@ Route::middleware(['auth:sanctum'])->prefix('candidate')->name('candidate.')->gr
     Route::get('/employers/featured', [JobSeekerEmployerController::class, 'featured'])->name('employers.featured');
     Route::get('/employers/{id}/jobs', [JobSeekerEmployerController::class, 'employerJobs'])->name('employers.jobs');
 
+    // CV Management
     Route::prefix('cv')->name('cv.')->group(function () {
-        Route::get('builder', [CVController::class, 'builder'])->name('builder');
-        Route::post('preview', [CVController::class, 'preview'])->name('preview');
-        Route::post('download', [CVController::class, 'download'])->name('download');
-        Route::get('download-html/{id}', [CVController::class, 'downloadHtml'])->name('download-html');
-        Route::post('save', [CVController::class, 'save'])->name('save');
-        Route::get('show/{id}', [CVController::class, 'show'])->name('show');
-        Route::delete('delete/{id}', [CVController::class, 'destroy'])->name('destroy');
-        Route::get('templates', [CVController::class, 'getTemplates'])->name('templates');
+        Route::get('builder', [CvController::class, 'builder'])->name('builder');
+        Route::post('preview', [CvController::class, 'preview'])->name('preview');
+        Route::post('download', [CvController::class, 'download'])->name('download');
+        Route::get('download-html/{id}', [CvController::class, 'downloadHtml'])->name('download-html');
+        Route::post('save', [CvController::class, 'save'])->name('save');
+        Route::get('show/{id}', [CvController::class, 'show'])->name('show');
+        Route::delete('delete/{id}', [CvController::class, 'destroy'])->name('destroy');
+        Route::get('templates', [CvController::class, 'getTemplates'])->name('templates');
+    });
+
+    // ============================================================
+    // RESUME MANAGEMENT - Using root ResumeController
+    // ============================================================
+    Route::prefix('resume')->name('resume.')->group(function () {
+        // ✅ DELETE route FIRST to avoid conflicts
+        Route::delete('/{id}', [ResumeController::class, 'destroy'])->name('destroy');
+        
+        // Other routes
+        Route::get('/', [ResumeController::class, 'index'])->name('index');
+        Route::post('/upload', [ResumeController::class, 'upload'])->name('upload');
+        Route::get('/{id}/view', [ResumeController::class, 'view'])->name('view');
+        Route::get('/{id}/parse-status', [ResumeController::class, 'parseStatus'])->name('parse-status');
+    });
+    
+    // ============================================================
+    // MATCH RESULTS - Using root ResumeController
+    // ============================================================
+    Route::prefix('matches')->name('matches.')->group(function () {
+        Route::get('/', [ResumeController::class, 'myMatches'])->name('index');
+        Route::get('/{id}', [ResumeController::class, 'matchDetails'])->name('details');
+        Route::get('/job/{jobId}', [ResumeController::class, 'jobMatch'])->name('job');
+    });
+
+    // ============================================================
+    // NOTIFICATIONS
+    // ============================================================
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [NotificationController::class, 'index'])->name('index');
+        Route::get('/latest', [NotificationController::class, 'latest'])->name('latest');
+        Route::get('/unread-count', [NotificationController::class, 'unreadCount'])->name('unread-count');
+        Route::post('/{id}/mark-read', [NotificationController::class, 'markAsRead'])->name('mark-read');
+        Route::post('/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('mark-all-read');
+        Route::get('/{id}', [NotificationController::class, 'show'])->name('show');
+        Route::delete('/{id}', [NotificationController::class, 'destroy'])->name('destroy');
+        Route::delete('/read/delete', [NotificationController::class, 'deleteRead'])->name('delete-read');
     });
 });
 
@@ -259,3 +337,8 @@ Route::get('/categories', [HomeController::class, 'categories'])->name('categori
 Route::get('/faq', [HomeController::class, 'faq'])->name('faq');
 Route::get('/terms', [HomeController::class, 'terms'])->name('terms');
 Route::get('/privacy', [HomeController::class, 'privacy'])->name('privacy');
+
+Route::post('/zoom/meeting', [ZoomController::class, 'create']);
+Route::patch('/zoom/meeting/{id}', [ZoomController::class, 'update']);
+Route::delete('/zoom/meeting/{id}', [ZoomController::class, 'delete']);
+Route::get('/zoom/meetings', [ZoomController::class, 'list']);

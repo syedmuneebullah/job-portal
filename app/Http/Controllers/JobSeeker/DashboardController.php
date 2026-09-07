@@ -34,7 +34,7 @@ class DashboardController extends Controller
             'total_applications' => Application::where('applicant_id', $user->id)->count(),
             'pending_applications' => Application::where('applicant_id', $user->id)->where('status', 'pending')->count(),
             'shortlisted_applications' => Application::where('applicant_id', $user->id)->where('status', 'shortlisted')->count(),
-            'interviewing_applications' => Application::where('applicant_id', $user->id)->where('status', 'interviewing')->count(),
+            'interviewing_applications' => Application::where('applicant_id', $user->id)->where('status', 'interview')->count(),
             'hired_applications' => Application::where('applicant_id', $user->id)->where('status', 'hired')->count(),
             'rejected_applications' => Application::where('applicant_id', $user->id)->where('status', 'rejected')->count(),
         ];
