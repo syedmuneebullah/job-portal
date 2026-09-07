@@ -11,7 +11,10 @@
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.3",
         "laravel/tinker": "^2.10.1",
-        "php-flasher/flasher-sweetalert-laravel": "^2.6"
+        "lloadout/microsoftgraph": "*",
+        "php-flasher/flasher-sweetalert-laravel": "^2.6",
+        "phpoffice/phpword": "^1.3",
+        "smalot/pdfparser": "^2.12"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

@@ -26,6 +26,7 @@ class Application extends Model
         'offered_at',
         'hired_at',
         'rejected_at',
+        'scheduled_at',
         'rejection_reason',
     ];
 
@@ -42,6 +43,7 @@ class Application extends Model
         'rejected_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'scheduled_at' => 'datetime',
     ];
 
     // Status constants
@@ -169,5 +171,13 @@ class Application extends Model
                 $this->attributes['rejected_at'] = now();
                 break;
         }
+    }
+
+    /**
+     * Get the scheduled interview for this application
+     */
+    public function scheduleInterview()
+    {
+        return $this->hasOne(ScheduleInterview::class);
     }
 }

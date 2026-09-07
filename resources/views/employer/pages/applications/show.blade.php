@@ -190,41 +190,123 @@
             <div class="bg-white rounded-lg border border-gray-200 p-5">
                 <h3 class="text-base font-semibold text-gray-900 mb-4">Application Timeline</h3>
                 <div class="relative pl-6 space-y-6 before:absolute before:left-1.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-200">
+                    
                     <!-- Applied -->
                     <div class="relative pl-6">
                         <div class="absolute -left-[22px] top-0.5 w-3 h-3 rounded-full bg-[#1a237e] ring-4 ring-white"></div>
                         <div>
-                            <p class="text-sm font-medium text-gray-900">Applied</p>
+                            <p class="text-sm font-medium text-gray-900">Application Submitted</p>
                             <p class="text-xs text-gray-500">{{ $application->created_at->format('M d, Y H:i A') }}</p>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 mt-1">
+                                Initial Application
+                            </span>
                         </div>
                     </div>
 
-                    <!-- Status Updated -->
-                    @if($application->status_updated_at)
+                    <!-- Status: Shortlisted (only if shortlisted_at has value) -->
+                    @if($application->shortlisted_at)
                     <div class="relative pl-6">
-                        <div class="absolute -left-[22px] top-0.5 w-3 h-3 rounded-full
-                            @if($application->status === 'hired') bg-emerald-500
-                            @elseif($application->status === 'rejected') bg-red-500
+                        <div class="absolute -left-[22px] top-0.5 w-3 h-3 rounded-full bg-blue-500 ring-4 ring-white"></div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-900">Shortlisted</p>
+                            <p class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($application->shortlisted_at)->format('M d, Y H:i A') }}</p>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 mt-1">
+                                Candidate Selected for Review
+                            </span>
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- Status: Interview (only if interview_at has value) -->
+                    @if($application->interview_at)
+                    <div class="relative pl-6">
+                        <div class="absolute -left-[22px] top-0.5 w-3 h-3 rounded-full bg-purple-500 ring-4 ring-white"></div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-900">Interview Scheduled</p>
+                            <p class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($application->interview_at)->format('M d, Y H:i A') }}</p>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700 mt-1">
+                                Interview Stage
+                            </span>
+                            @if($application->meeting_link)
+                                <a href="{{ $application->meeting_link }}" target="_blank" 
+                                class="inline-flex items-center gap-1 mt-2 text-xs text-blue-600 hover:text-blue-800 transition-colors">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    </svg>
+                                    Join Meeting
+                                </a>
+                            @endif
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- Status: Hired (only if hired_at has value) -->
+                    @if($application->hired_at)
+                    <div class="relative pl-6">
+                        <div class="absolute -left-[22px] top-0.5 w-3 h-3 rounded-full bg-emerald-500 ring-4 ring-white"></div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-900">Hired</p>
+                            <p class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($application->hired_at)->format('M d, Y H:i A') }}</p>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 mt-1">
+                                🎉 Candidate Hired
+                            </span>
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- Status: Rejected (only if rejected_at has value) -->
+                    @if($application->rejected_at)
+                    <div class="relative pl-6">
+                        <div class="absolute -left-[22px] top-0.5 w-3 h-3 rounded-full bg-red-500 ring-4 ring-white"></div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-900">Rejected</p>
+                            <p class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($application->rejected_at)->format('M d, Y H:i A') }}</p>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700 mt-1">
+                                Application Declined
+                            </span>
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- Current Status Indicator (Always shown) -->
+                    <div class="relative pl-6">
+                        <div class="absolute -left-[22px] top-0.5 w-3 h-3 rounded-full 
+                            @if($application->status === 'pending') bg-amber-500
                             @elseif($application->status === 'shortlisted') bg-blue-500
                             @elseif($application->status === 'interview') bg-purple-500
-                            @else bg-amber-500
-                            @endif ring-4 ring-white">
+                            @elseif($application->status === 'hired') bg-emerald-500
+                            @elseif($application->status === 'rejected') bg-red-500
+                            @else bg-gray-500
+                            @endif ring-4 ring-white animate-pulse">
                         </div>
                         <div>
-                            <p class="text-sm font-medium text-gray-900">Status Updated</p>
-                            <p class="text-xs text-gray-500">{{ $application->status_updated_at->format('M d, Y H:i A') }}</p>
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium mt-1
+                            <p class="text-sm font-medium text-gray-900">Current Status</p>
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium mt-1
                                 @if($application->status === 'pending') bg-amber-50 text-amber-700
                                 @elseif($application->status === 'shortlisted') bg-blue-50 text-blue-700
                                 @elseif($application->status === 'interview') bg-purple-50 text-purple-700
                                 @elseif($application->status === 'hired') bg-emerald-50 text-emerald-700
                                 @elseif($application->status === 'rejected') bg-red-50 text-red-700
+                                @else bg-gray-50 text-gray-700
                                 @endif">
+                                <span class="w-1.5 h-1.5 rounded-full mr-1.5
+                                    @if($application->status === 'pending') bg-amber-500
+                                    @elseif($application->status === 'shortlisted') bg-blue-500
+                                    @elseif($application->status === 'interview') bg-purple-500
+                                    @elseif($application->status === 'hired') bg-emerald-500
+                                    @elseif($application->status === 'rejected') bg-red-500
+                                    @else bg-gray-500
+                                    @endif"></span>
                                 {{ ucfirst($application->status) }}
                             </span>
+                            @if($application->notes)
+                                <p class="text-xs text-gray-500 mt-2 p-2 bg-gray-50 rounded-lg">
+                                    <span class="font-medium">Note:</span> {{ $application->notes }}
+                                </p>
+                            @endif
                         </div>
                     </div>
-                    @endif
                 </div>
             </div>
         </div>
@@ -262,11 +344,26 @@
                         Update Status
                     </button>
 
-                    <button class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-50 text-emerald-700 text-sm font-medium rounded-lg hover:bg-emerald-100 transition-all duration-200 schedule-interview">
+                    <button onclick="openScheduleModal(event, {{ $application->id }})"
+                    title="Schedule Interview"
+                                        id="schedule-btn-{{ $application->id }}"
+                                        {{ $application->status === 'scheduled' ? 'disabled style="opacity:0.6;cursor:not-allowed;"' : '' }}
+                     class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-50 text-emerald-700 text-sm font-medium rounded-lg hover:bg-emerald-100 transition-all duration-200 schedule-interview">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                         </svg>
-                        Schedule Interview
+                       @if($application->status === 'scheduled')
+                                        <!-- <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                        </svg> -->
+                                        <span>Scheduled ✓</span>
+                                    @else
+                                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11v4m0 0h-2m2 0h2"/>
+                                        </svg>
+                                        <span id="btn-text-{{ $application->id }}">Schedule Interview</span>
+                                    @endif
                     </button>
 
                     <button onclick="confirmDelete({{ $application->id }})"
@@ -293,8 +390,11 @@
 </div>
 
 <!-- ===== STATUS UPDATE MODAL (Centered) ===== -->
-<div id="statusModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4 flex">
-    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+<div id="statusModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 flex">
+    <!-- Backdrop with blur -->
+    <div class="fixed inset-0 backdrop-blur-sm bg-black/30 transition-opacity" onclick="closeStatusModal()"></div>
+    
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto relative">
         <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
             <h3 class="text-lg font-semibold text-gray-900">Update Application Status</h3>
             <button onclick="closeStatusModal()" class="p-1.5 rounded-full hover:bg-gray-100 transition-colors">
@@ -331,6 +431,106 @@
                 <button onclick="closeStatusModal()" class="px-6 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors">
                     Cancel
                 </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SCHEDULE INTERVIEW MODAL (CENTERED) ===== -->
+<div id="scheduleModal" class="fixed inset-0 z-50 hidden" style="display:none;">
+    <!-- Backdrop with blur -->
+    <div class="fixed inset-0 backdrop-blur-sm bg-black/30 transition-opacity" onclick="closeScheduleModal()"></div>
+    
+    <!-- Modal Container - Centered -->
+    <div class="fixed inset-0 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto relative transform transition-all">
+            <!-- Close button -->
+            <button type="button" 
+                    onclick="closeScheduleModal()"
+                    class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors p-1">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+
+            <div class="p-6">
+                <h3 class="text-xl font-bold text-gray-900 mb-6">Schedule Interview</h3>
+                
+                <form id="scheduleForm">
+                    @csrf
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Date & Time <span class="text-red-500">*</span>
+                        </label>
+                        <input type="datetime-local" 
+                               name="interview_datetime" 
+                               id="interview_datetime"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1a237e] focus:border-[#1a237e] outline-none transition"
+                               required>
+                        <p class="text-xs text-gray-400 mt-1">Select the date and time for the interview</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Duration (minutes)</label>
+                        <select name="duration" id="interview_duration" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1a237e] focus:border-[#1a237e] outline-none transition">
+                            <option value="15">15 minutes</option>
+                            <option value="30">30 minutes</option>
+                            <option value="45">45 minutes</option>
+                            <option value="60" selected>60 minutes</option>
+                            <option value="90">90 minutes</option>
+                            <option value="120">120 minutes</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Timezone</label>
+                        <select name="timezone" id="interview_timezone" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1a237e] focus:border-[#1a237e] outline-none transition">
+                            <option value="UTC">UTC</option>
+                            <option value="Asia/Karachi" selected>Asia/Karachi (PKT - Pakistan Standard Time)</option>
+                            <option value="Asia/Kolkata">Asia/Kolkata (IST - India Standard Time)</option>
+                            <option value="America/New_York">America/New_York (EST - Eastern Time)</option>
+                            <option value="America/Los_Angeles">America/Los_Angeles (PST - Pacific Time)</option>
+                            <option value="Europe/London">Europe/London (GMT - Greenwich Mean Time)</option>
+                            <option value="Europe/Paris">Europe/Paris (CET - Central European Time)</option>
+                            <option value="Australia/Sydney">Australia/Sydney (AEST - Australian Eastern Time)</option>
+                            <option value="Asia/Dubai">Asia/Dubai (GST - Gulf Standard Time)</option>
+                            <option value="Asia/Singapore">Asia/Singapore (SGT - Singapore Time)</option>
+                            <option value="Asia/Tokyo">Asia/Tokyo (JST - Japan Standard Time)</option>
+                            <option value="Asia/Shanghai">Asia/Shanghai (CST - China Standard Time)</option>
+                            <option value="Europe/Berlin">Europe/Berlin (CET - Central European Time)</option>
+                            <option value="Europe/Moscow">Europe/Moscow (MSK - Moscow Time)</option>
+                            <option value="America/Chicago">America/Chicago (CT - Central Time)</option>
+                            <option value="America/Denver">America/Denver (MT - Mountain Time)</option>
+                            <option value="America/Phoenix">America/Phoenix (MST - Mountain Standard Time)</option>
+                            <option value="America/Toronto">America/Toronto (ET - Eastern Time)</option>
+                            <option value="America/Vancouver">America/Vancouver (PT - Pacific Time)</option>
+                            <option value="Pacific/Auckland">Pacific/Auckland (NZST - New Zealand Time)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
+                        <textarea name="notes" 
+                                  id="interview_notes"
+                                  rows="3"
+                                  placeholder="Any additional instructions or notes for the candidate..."
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1a237e] focus:border-[#1a237e] outline-none transition resize-none"></textarea>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" 
+                                onclick="closeScheduleModal()"
+                                class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium">
+                            Cancel
+                        </button>
+                        <button type="submit" 
+                                id="scheduleSubmitBtn"
+                                class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
+                            Schedule Interview
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

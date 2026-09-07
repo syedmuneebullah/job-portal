@@ -9,6 +9,7 @@ use App\Models\Employer;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Services\NotificationService;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -1161,62 +1162,61 @@ class JobController extends Controller
     /**
      * Update application status
      */
-    public function updateApplicationStatus(Request $request, $applicationId)
-    {
-        $request->validate([
-            'status' => 'required|in:pending,shortlisted,interview,hired,rejected',
-            'notes' => 'nullable|string|max:1000'
-        ]);
+    public function updateApplicationStatus(Request $request, $applicationId, NotificationService $notificationService)
+{
+    $request->validate([
+        'status' => 'required|in:pending,shortlisted,interview,hired,rejected',
+        'notes' => 'nullable|string|max:1000'
+    ]);
 
-        // Get the authenticated user ID
-        $authUserId = auth()->id();
-        $employer = Employer::where('user_id', $authUserId)->first();
+    // Get the authenticated user ID
+    $authUserId = auth()->id();
+    $employer = Employer::where('user_id', $authUserId)->first();
 
-        if (!$employer) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Employer not found'
-            ], 404);
-        }
-
-        // Find the application and verify it belongs to the employer
-        $application = Application::where('id', $applicationId)
-            ->whereHas('jobPost', function($q) use ($employer) {
-                $q->where('employer_id', $employer->id);
-            })
-            ->first();
-
-        if (!$application) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Application not found or does not belong to you'
-            ], 404);
-        }
-
-        $oldStatus = $application->status;
-        $newStatus = $request->status;
-
-        // Update status
-        $application->status = $newStatus;
-
-        // Set timestamp for the new status
-        $statusField = $newStatus . '_at';
-        if (in_array($newStatus, ['reviewed','shortlisted', 'interview', 'offered', 'hired', 'rejected'])) {
-            $application->$statusField = now();
-        }
-        // Add notes if provided
-        // if ($request->filled('notes')) {
-        //     $application->notes = $request->notes;
-        // }
-
-        $application->save();
-
+    if (!$employer) {
         return response()->json([
-            'success' => true,
-            'message' => 'Application status updated successfully',
-            'data' => $application
-        ]);
+            'success' => false,
+            'message' => 'Employer not found'
+        ], 404);
     }
+
+    // Find the application and verify it belongs to the employer
+    $application = Application::with(['applicant', 'jobPost'])->where('id', $applicationId)
+        ->whereHas('jobPost', function($q) use ($employer) {
+            $q->where('employer_id', $employer->id);
+        })
+        ->first();
+
+    if (!$application) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Application not found or does not belong to you'
+        ], 404);
+    }
+
+    $oldStatus = $application->status;
+    $newStatus = $request->status;
+
+    // Update status
+    $application->status = $newStatus;
+
+    // Set timestamp for the new status
+    $statusField = $newStatus . '_at';
+    if (in_array($newStatus, ['shortlisted', 'interview', 'hired', 'rejected'])) {
+        $application->$statusField = now();
+    }
+
+    $application->save();
+
+    // ✅ Send notification to applicant about status change
+    $notificationService->applicationStatusUpdated($application, $oldStatus, $newStatus);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Application status updated successfully',
+        'data' => $application
+    ]);
+}
 
     /**
      * Bulk update application status

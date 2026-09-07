@@ -290,7 +290,7 @@ class UsersController extends Controller
 
 
         flash()->success('User Updated Successfully!');
-        return redirect()->route('users.index');
+        return redirect()->route('admin.users.index');
     }
 
     /**
@@ -304,7 +304,7 @@ class UsersController extends Controller
         $user->delete();
 
         flash()->success("User '{$userName}' has been moved to trash");
-        return redirect()->route('users.index');
+        return redirect()->route('admin.users.index');
     }
 
     /**
@@ -318,7 +318,7 @@ class UsersController extends Controller
         $user->restore();
 
         flash()->success("User '{$userName}' has been restored successfully");
-        return redirect()->route('users.index');
+        return redirect()->route('admin.users.index');
     }
 
     /**
@@ -337,7 +337,7 @@ class UsersController extends Controller
         $user->forceDelete();
 
         flash()->success("User '{$userName}' has been permanently deleted");
-        return redirect()->route('users.index');
+        return redirect()->route('admin.users.index');
     }
 
     /**
