@@ -51,14 +51,7 @@
                 </a>
             </div>
 
-            <!-- Jobs -->
-            <div class="nav-item">
-                <a href="{{ route('candidate.jobs.listings') }}" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:text-[#1a237e] hover:bg-gray-100 transition-all duration-200 group">
-                    <i class="fas fa-search w-5 text-center text-sm text-gray-400 group-hover:text-[#FF7543]"></i>
-                    <span class="nav-link-text text-sm font-medium">Find Jobs</span>
-                    <span class="nav-tooltip">Find Jobs</span>
-                </a>
-            </div>
+           
 
             <!-- Applied Jobs -->
             <div class="nav-item">
@@ -79,7 +72,7 @@
             </div>
 
             <!-- ✅ NEW: Interview Schedule -->
-           
+
 
             <!-- Profile -->
             <div class="nav-item">
@@ -122,7 +115,7 @@
         <!-- Sidebar Footer -->
         <div class="sidebar-footer border-t border-gray-200 px-3 py-4">
             <div class="nav-item">
-                <a href="{{ route('auth.user.logout') }}" 
+                <a href="{{ route('auth.user.logout') }}"
                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
                    class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:text-[#1a237e] hover:bg-gray-100 transition-all duration-200 group">
                     <i class="fas fa-sign-out-alt w-5 text-center text-sm text-gray-400 group-hover:text-red-500"></i>

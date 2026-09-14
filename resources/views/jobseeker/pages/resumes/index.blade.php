@@ -12,7 +12,7 @@
             <h2 class="text-lg font-semibold text-gray-900">My Resumes</h2>
             <p class="text-sm text-gray-500 mt-1">Upload and manage your resumes for AI-powered matching</p>
         </div>
-        <button onclick="openUploadModal()" 
+        <button onclick="openUploadModal()"
                 class="inline-flex items-center gap-2 px-4 py-2 bg-[#1a237e] text-white text-sm font-medium rounded-lg hover:bg-[#0d1445] transition-all duration-200 shadow-sm hover:shadow-md">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -97,7 +97,7 @@
                         <div class="flex items-start justify-between gap-4">
                             <div class="flex items-start gap-4 flex-1 min-w-0">
                                 <!-- File Icon -->
-                                <div class="w-10 h-10 rounded-lg 
+                                <div class="w-10 h-10 rounded-lg
                                     @if($resume->status === 'completed') bg-green-100 text-green-600
                                     @elseif($resume->status === 'failed') bg-red-100 text-red-600
                                     @else bg-amber-100 text-amber-600
@@ -105,7 +105,7 @@
                                     flex items-center justify-center flex-shrink-0">
                                     <i class="fas fa-file-pdf text-xl"></i>
                                 </div>
-                                
+
                                 <!-- File Info -->
                                 <div class="flex-1 min-w-0">
                                     <div class="flex flex-wrap items-center gap-2">
@@ -125,7 +125,7 @@
                                             {{ ucfirst($resume->status) }}
                                         </span>
                                     </div>
-                                    
+
                                     <div class="flex flex-wrap items-center gap-3 mt-1 text-xs text-gray-500">
                                         <span>
                                             <i class="far fa-calendar-alt mr-1"></i>
@@ -155,16 +155,16 @@
                             <!-- Actions -->
                             <div class="flex items-center gap-2 flex-shrink-0">
                                 @if($resume->status === 'completed')
-                                    <a href="{{ route('candidate.resume.view', $resume->id) }}" 
+                                    <a href="{{ route('candidate.resume.view', $resume->id) }}"
                                        class="px-3 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors">
                                         View Details
                                     </a>
-                                    <a href="{{ route('candidate.matches.index') }}" 
+                                    <a href="{{ route('candidate.matches.index') }}"
                                        class="px-3 py-1.5 text-xs font-medium text-green-600 hover:text-green-800 hover:bg-green-50 rounded-lg transition-colors">
                                         View Matches
                                     </a>
                                 @endif
-                                
+
                                 @if($resume->status === 'pending')
                                     <span class="px-3 py-1.5 text-xs font-medium text-amber-600 bg-amber-50 rounded-lg">
                                         <i class="fas fa-spinner fa-spin mr-1"></i>
@@ -172,12 +172,20 @@
                                     </span>
                                 @endif
 
-                                <button onclick="deleteResume({{ $resume->id }})" 
-                                        class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                    </svg>
-                                </button>
+                                <!-- ✅ DELETE FORM - DIRECT SUBMIT -->
+                                <form action="{{ route('candidate.resume.delete', $resume->id) }}"
+                                      method="POST"
+                                      onsubmit="return confirm('Are you sure you want to delete this resume? This action cannot be undone.');"
+                                      style="display:inline;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit"
+                                            class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                        </svg>
+                                    </button>
+                                </form>
                             </div>
                         </div>
 
@@ -222,7 +230,7 @@
                     </svg>
                     <p class="text-lg font-medium text-gray-900">No resumes uploaded yet</p>
                     <p class="text-sm text-gray-500 mt-1">Upload your resume to get AI-powered job matching</p>
-                    <button onclick="openUploadModal()" 
+                    <button onclick="openUploadModal()"
                             class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-[#1a237e] text-white text-sm font-medium rounded-lg hover:bg-[#0d1445] transition-all duration-200">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -240,12 +248,12 @@
 <div id="uploadModal" class="fixed inset-0 z-[9999]" style="display:none;">
     <!-- Backdrop -->
     <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" onclick="closeUploadModal()"></div>
-    
+
     <!-- Modal Container -->
     <div class="fixed inset-0 flex items-center justify-center p-4">
         <div class="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto relative" style="z-index: 10000;">
             <!-- Close button -->
-            <button type="button" 
+            <button type="button"
                     onclick="closeUploadModal()"
                     class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors p-1 z-10">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -255,18 +263,22 @@
 
             <div class="p-6">
                 <h3 class="text-xl font-bold text-gray-900 mb-4">Upload Resume</h3>
-                
-                <form id="uploadForm" action="{{ route('candidate.resume.upload') }}" method="POST" enctype="multipart/form-data">
+
+                <!-- ✅ DIRECT FORM SUBMIT - NO SWAL -->
+                <form id="uploadForm"
+                      action="{{ route('candidate.resume.upload') }}"
+                      method="POST"
+                      enctype="multipart/form-data">
                     @csrf
-                    
+
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">
                             Select Resume File <span class="text-red-500">*</span>
                         </label>
                         <div id="dropZone" class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#1a237e] transition-colors cursor-pointer">
-                            <input type="file" 
-                                   name="resume" 
-                                   id="resumeFile" 
+                            <input type="file"
+                                   name="resume"
+                                   id="resumeFile"
                                    accept=".pdf,.doc,.docx,.txt"
                                    class="hidden"
                                    required>
@@ -283,14 +295,14 @@
                             <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                         @enderror
                     </div>
-                    
+
                     <div class="flex justify-end space-x-3">
-                        <button type="button" 
+                        <button type="button"
                                 onclick="closeUploadModal()"
                                 class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium">
                             Cancel
                         </button>
-                        <button type="submit" 
+                        <button type="submit"
                                 id="uploadSubmitBtn"
                                 class="px-4 py-2 bg-[#1a237e] text-white rounded-lg hover:bg-[#0d1445] transition-colors font-medium">
                             Upload & Analyze
@@ -309,7 +321,6 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 // ============================================================
 // UPLOAD MODAL FUNCTIONS
@@ -320,9 +331,6 @@ window.openUploadModal = function() {
     if (modal) {
         modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
-        console.log('Modal opened');
-    } else {
-        console.error('Modal not found');
     }
 };
 
@@ -338,7 +346,6 @@ window.closeUploadModal = function() {
         if (fileName) fileName.classList.add('hidden');
         const fileLabel = document.getElementById('fileLabel');
         if (fileLabel) fileLabel.innerHTML = '<span class="font-medium text-[#1a237e]">Click to upload</span> or drag and drop';
-        console.log('Modal closed');
     }
 };
 
@@ -395,7 +402,7 @@ document.addEventListener('DOMContentLoaded', function() {
         dropZone.addEventListener('drop', function(e) {
             e.preventDefault();
             this.classList.remove('border-[#1a237e]', 'bg-blue-50');
-            
+
             const files = e.dataTransfer.files;
             if (files.length > 0) {
                 fileInput.files = files;
@@ -410,62 +417,16 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================================
-// DELETE RESUME
-// ============================================================
-
-window.deleteResume = function(id) {
-    Swal.fire({
-        title: 'Delete Resume?',
-        text: 'This action cannot be undone. All associated data will be removed.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Yes, delete it',
-        cancelButtonText: 'Cancel'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            fetch(`/candidate/resume/${id}`, {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    'Accept': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Deleted!',
-                        text: 'Resume deleted successfully.',
-                        timer: 2000,
-                        showConfirmButton: false
-                    }).then(() => {
-                        location.reload();
-                    });
-                } else {
-                    Swal.fire('Error', data.message || 'Failed to delete resume.', 'error');
-                }
-            })
-            .catch(error => {
-                Swal.fire('Error', 'Failed to delete resume. Please try again.', 'error');
-            });
-        }
-    });
-};
-
-// ============================================================
 // POLLING FOR PARSE STATUS
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', function() {
     const pendingResumes = document.querySelectorAll('.status-pending');
-    
+
     if (pendingResumes.length > 0) {
         const interval = setInterval(() => {
             let hasPending = false;
-            
+
             pendingResumes.forEach(element => {
                 const resumeId = element.dataset.resumeId;
                 if (resumeId) {
@@ -473,7 +434,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     checkParseStatus(resumeId);
                 }
             });
-            
+
             if (!hasPending) {
                 clearInterval(interval);
             }
@@ -482,7 +443,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function checkParseStatus(id) {
-    fetch(`/candidate/resume/${id}/parse-status`)
+    fetch(`/candidate/resume/parse-status/${id}`)
         .then(response => response.json())
         .then(data => {
             if (data.success && data.status === 'completed') {
@@ -491,38 +452,8 @@ function checkParseStatus(id) {
         })
         .catch(error => console.error('Error checking parse status:', error));
 }
-
-// ============================================================
-// FORM SUBMISSION HANDLING
-// ============================================================
-
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('uploadForm');
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            const submitBtn = document.getElementById('uploadSubmitBtn');
-            const originalText = submitBtn.innerHTML;
-            
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = `
-                <svg class="animate-spin h-4 w-4 mr-2 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Uploading...
-            `;
-            
-            setTimeout(() => {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalText;
-            }, 5000);
-        });
-    }
-});
-
-console.log('Resume page loaded successfully');
-console.log('Upload modal element exists:', document.getElementById('uploadModal') !== null);
 </script>
+
 <style>
 .badge-pulse {
     animation: pulse 2s infinite;

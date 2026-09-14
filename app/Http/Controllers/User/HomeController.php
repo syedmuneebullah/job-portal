@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\Employer;
 use App\Models\SubscriptionPlan;
 use App\Models\JobPost;
 use Illuminate\Http\Request;
@@ -81,7 +82,7 @@ class HomeController extends Controller
             ->orderBy('sort_order', 'asc')
             ->orderBy('price', 'asc')
             ->get();
-        
+
         // If no active plans, get all plans
         if ($plans->isEmpty()) {
             $plans = SubscriptionPlan::orderBy('sort_order', 'asc')
@@ -132,7 +133,7 @@ class HomeController extends Controller
                     'ends_at' => null,
                     'next_billing_at' => null,
                 ]);
-                
+
                 $subscription = $expiredSubscription;
             } else {
                 $subscription = $user->subscriptions()->create([
@@ -154,10 +155,10 @@ class HomeController extends Controller
         // For paid plans - check if plan has trial period
         $trialDays = $plan->trial_days ?? 0;
         $status = $trialDays > 0 ? 'trial' : 'active';
-        
+
         // Calculate trial end date if trial is available
         $trialEndsAt = $trialDays > 0 ? now()->addDays($trialDays) : null;
-        
+
         // Calculate subscription end date (for paid plans)
         $endsAt = $this->calculateEndDate($plan->billing_period);
 
@@ -215,7 +216,7 @@ class HomeController extends Controller
     {
         $plan = SubscriptionPlan::findOrFail($planId);
         $user = auth()->user();
-        
+
         return view('user.pages.checkout', compact('plan', 'user'));
     }
 
@@ -225,7 +226,7 @@ class HomeController extends Controller
     public function cancelSubscription($id)
     {
         $subscription = UserSubscription::findOrFail($id);
-        
+
         // Ensure the subscription belongs to the authenticated user
         if ($subscription->user_id != auth()->id()) {
             abort(403);
@@ -271,6 +272,64 @@ class HomeController extends Controller
                 'next_billing_at' => $subscription->next_billing_at,
             ]
         ]);
+    }
+
+    public function Companies(Request $request)
+    {
+        $query = Employer::query();
+
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('company_name', 'like', '%' . $request->search . '%')
+                ->orWhere('industry', 'like', '%' . $request->search . '%')
+                ->orWhere('headquarters', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        if ($request->filled('industry')) {
+            $query->where('industry', $request->industry);
+        }
+
+        if ($request->filled('location')) {
+            $query->where('headquarters', 'like', '%' . $request->location . '%');
+        }
+
+        if ($request->filled('verified')) {
+            $query->where('verification_status', 'verified');
+        }
+
+        $companies = $query->latest()->paginate(12)->withQueryString();
+
+        return view('user.pages.companies', compact('companies'));
+    }
+
+    /**
+     * Show a single company's full profile and its active job listings.
+     */
+    public function CompanyProfile($id)
+    {
+        // Load the employer with all details
+        $company = Employer::findOrFail($id);
+
+        // Get all published jobs for this employer, with pagination
+        $jobs = JobPost::with(['employer' => function ($query) {
+                $query->select('id', 'company_name', 'company_logo', 'industry');
+            }])
+            ->where('employer_id', $company->id)
+            ->where('status', 'published')
+            ->whereNull('deleted_at')
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        // Stats
+        $totalJobs = JobPost::where('employer_id', $company->id)
+            ->where('status', 'published')
+            ->whereNull('deleted_at')
+            ->count();
+
+        $openJobs = $totalJobs; // adjust if you have a separate "open" status
+
+        return view('user.pages.company-profile', compact('company', 'jobs', 'totalJobs', 'openJobs'));
     }
 
 
