@@ -30,12 +30,10 @@
                 <a href="{{ route('user.job.listings') }}" class="nav-pill text-xs xl:text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-white/70 transition-all flex items-center gap-1.5 xl:gap-2 px-3 xl:px-4 py-1.5 xl:py-2 rounded-full">
                     <i class="fas fa-search text-[#FF6B35] text-[10px] xl:text-xs"></i> Find Jobs
                 </a>
-                <a href="#" class="nav-pill text-xs xl:text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-white/70 transition-all flex items-center gap-1.5 xl:gap-2 px-3 xl:px-4 py-1.5 xl:py-2 rounded-full">
+                <a href="{{ route('user.companies') }}" class="nav-pill text-xs xl:text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-white/70 transition-all flex items-center gap-1.5 xl:gap-2 px-3 xl:px-4 py-1.5 xl:py-2 rounded-full">
                     <i class="fas fa-building text-[#FF6B35] text-[10px] xl:text-xs"></i> Companies
                 </a>
-                <a href="#" class="nav-pill text-xs xl:text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-white/70 transition-all flex items-center gap-1.5 xl:gap-2 px-3 xl:px-4 py-1.5 xl:py-2 rounded-full">
-                    <i class="fas fa-graduation-cap text-[#FF6B35] text-[10px] xl:text-xs"></i> Institutions
-                </a>
+                
                 <a href="#" class="nav-pill text-xs xl:text-sm font-medium text-white bg-gradient-to-r from-[#FF6B35] to-[#FF8F65] hover:from-[#E55A2B] hover:to-[#FF6B35] transition-all flex items-center gap-1.5 xl:gap-2 px-3 xl:px-5 py-1.5 xl:py-2 rounded-full shadow-sm shadow-orange-200/40">
                     <i class="fas fa-rocket text-white/90 text-[10px] xl:text-xs"></i> Post a Job
                 </a>

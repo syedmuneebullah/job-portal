@@ -34,6 +34,8 @@ Route::get('/about-us', [HomeController::class, 'about'])->name('user.about');
 Route::get('/contact-us', [HomeController::class, 'contact'])->name('user.contact');
 Route::get('/jobs/listings', [HomeController::class, 'JobListings'])->name('user.job.listings');
 Route::get('/job/details/{id}', [HomeController::class, 'JobDetails'])->name('user.job.details');
+Route::get('/companies', [HomeController::class, 'Companies'])->name('user.companies');
+Route::get('/companies/{id}', [HomeController::class, 'CompanyProfile'])->name('company.profile');
 
 // ============================================================
 // AUTH ROUTES (WEB)
@@ -103,7 +105,7 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->name('admin.')->group(func
     Route::post('subscriptions/{id}/activate', [SubscriptionController::class, 'activateSubscription'])->name('subscriptions.activate');
     Route::post('subscriptions/{id}/extend', [SubscriptionController::class, 'extendSubscription'])->name('subscriptions.extend');
     Route::post('subscriptions/bulk-update', [SubscriptionController::class, 'bulkSubscriptionUpdate'])->name('subscriptions.bulk-update');
-   
+
     // CV Templates
     Route::resource('cv-templates', CvTemplateController::class);
     Route::get('cv-templates/{cvTemplate}/preview', [CvTemplateController::class, 'preview'])
@@ -295,16 +297,17 @@ Route::middleware(['auth:sanctum'])->prefix('candidate')->name('candidate.')->gr
     // RESUME MANAGEMENT - Using root ResumeController
     // ============================================================
     Route::prefix('resume')->name('resume.')->group(function () {
-        // ✅ DELETE route FIRST to avoid conflicts
-        Route::delete('/{id}', [ResumeController::class, 'destroy'])->name('destroy');
-        
+
+
         // Other routes
         Route::get('/', [ResumeController::class, 'index'])->name('index');
         Route::post('/upload', [ResumeController::class, 'upload'])->name('upload');
         Route::get('/{id}/view', [ResumeController::class, 'view'])->name('view');
         Route::get('/{id}/parse-status', [ResumeController::class, 'parseStatus'])->name('parse-status');
+        // ✅ DELETE route FIRST to avoid conflicts
+        Route::delete('/{id}', [ResumeController::class, 'destroy'])->name('delete');
     });
-    
+
     // ============================================================
     // MATCH RESULTS - Using root ResumeController
     // ============================================================
