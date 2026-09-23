@@ -2,386 +2,440 @@
 
 namespace Database\Seeders;
 
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use App\Models\Employer;
 use App\Models\JobPost;
 use App\Models\JobPostQuestion;
-use Illuminate\Database\Seeder;
+use Carbon\Carbon;
 
 class JobPostSeeder extends Seeder
 {
+    /**
+     * Job templates per industry.
+     * Each = [title, department, experience_level, salary_min, salary_max]
+     * Salaries in RM (monthly).
+     */
+    protected array $jobTemplates = [
+        'Technology' => [
+            ['Senior Frontend Developer',     'Engineering', 'senior',     8000, 14000],
+            ['Backend Engineer (PHP/Laravel)', 'Engineering', 'mid',        6000, 10000],
+            ['Full Stack Developer',          'Engineering', 'mid',        7000, 12000],
+            ['DevOps Engineer',               'Engineering', 'senior',     9000, 15000],
+            ['Mobile Developer (Flutter)',    'Engineering', 'mid',        6500, 11000],
+            ['QA Engineer',                   'Engineering', 'junior',     4000,  7000],
+            ['Data Analyst',                  'Data',        'mid',        5500,  9000],
+            ['Data Scientist',                'Data',        'senior',     9000, 16000],
+            ['Machine Learning Engineer',     'Data',        'senior',    10000, 18000],
+            ['Product Manager',               'Product',     'senior',    10000, 17000],
+            ['UI/UX Designer',                'Design',      'mid',        5000,  9000],
+            ['Technical Lead',                'Engineering', 'lead',      12000, 20000],
+            ['Cybersecurity Analyst',         'Security',    'mid',        7000, 12000],
+            ['Cloud Architect',               'Engineering', 'senior',    12000, 20000],
+            ['Software Engineer Intern',      'Engineering', 'internship', 1500,  2500],
+        ],
+        'Banking' => [
+            ['Relationship Manager',      'Sales',      'mid',     6000, 10000],
+            ['Credit Analyst',            'Risk',       'mid',     5500,  9000],
+            ['Investment Analyst',        'Investment', 'senior',  9000, 15000],
+            ['Branch Manager',            'Operations', 'senior', 10000, 16000],
+            ['Compliance Officer',        'Compliance', 'mid',     6500, 11000],
+            ['Risk Management Executive', 'Risk',       'junior',  4000,  6500],
+            ['Financial Advisor',         'Sales',      'mid',     5000,  9000],
+            ['Treasury Analyst',          'Treasury',   'mid',     6000, 10000],
+        ],
+        'Healthcare' => [
+            ['Registered Nurse',       'Nursing',    'mid',    3500,  6000],
+            ['Medical Officer',        'Medical',    'mid',    7000, 12000],
+            ['Pharmacist',             'Pharmacy',   'mid',    5000,  8000],
+            ['Lab Technician',         'Laboratory', 'junior', 3000,  5000],
+            ['Hospital Administrator', 'Admin',      'mid',    4500,  7500],
+            ['Physiotherapist',        'Rehab',      'mid',    4000,  7000],
+        ],
+        'Manufacturing' => [
+            ['Production Supervisor',    'Production',  'mid',     4500,  7500],
+            ['Quality Control Engineer', 'QC',          'mid',     5000,  8000],
+            ['Mechanical Engineer',      'Engineering', 'mid',     5500,  9000],
+            ['Plant Manager',            'Operations',  'senior', 12000, 18000],
+            ['Maintenance Technician',   'Maintenance', 'junior',  3000,  5000],
+        ],
+        'E-Commerce' => [
+            ['Category Manager',            'Merchandising', 'mid',    6000, 10000],
+            ['Warehouse Supervisor',        'Logistics',     'mid',    4000,  6500],
+            ['Customer Success Manager',    'Customer',      'mid',    5000,  8500],
+            ['Digital Marketing Executive', 'Marketing',     'junior', 3500,  6000],
+            ['Livestream Host',             'Marketing',     'junior', 3000,  5500],
+            ['Logistics Coordinator',       'Logistics',     'junior', 3500,  5500],
+        ],
+        'Education' => [
+            ['Mathematics Teacher',    'Teaching',   'mid',    3500,  6000],
+            ['Academic Counselor',     'Counseling', 'mid',    4000,  6500],
+            ['Curriculum Developer',   'Academic',   'senior', 6500, 10000],
+            ['Primary School Teacher', 'Teaching',   'junior', 3000,  5000],
+        ],
+        'Design' => [
+            ['Graphic Designer',         'Creative', 'mid',    4000,  7000],
+            ['Brand Designer',           'Creative', 'mid',    5000,  8000],
+            ['Motion Graphics Designer', 'Creative', 'mid',    5000,  8500],
+            ['Art Director',             'Creative', 'senior', 9000, 14000],
+        ],
+        'Consulting' => [
+            ['Business Analyst',      'Consulting', 'mid',     6000, 10000],
+            ['Strategy Consultant',   'Consulting', 'senior',  9000, 15000],
+            ['Management Consultant', 'Consulting', 'senior', 10000, 16000],
+            ['Junior Consultant',     'Consulting', 'junior',  4000,  6000],
+        ],
+        // Fallback when the employer's industry isn't mapped
+        'General' => [
+            ['Marketing Executive',        'Marketing',  'junior', 3500,  6000],
+            ['HR Executive',               'HR',         'junior', 3500,  6000],
+            ['Admin Executive',            'Admin',      'junior', 3000,  5000],
+            ['Sales Executive',            'Sales',      'junior', 3500,  6000],
+            ['Account Executive',          'Finance',    'junior', 3800,  6500],
+            ['Operations Manager',         'Operations', 'mid',    6500, 10000],
+            ['Customer Service Executive', 'Customer',   'junior', 3000,  5000],
+        ],
+    ];
+
+    /**
+     * Malaysian cities for job locations.
+     */
+    protected array $locations = [
+        'Kuala Lumpur', 'Petaling Jaya', 'Shah Alam', 'Subang Jaya',
+        'Penang', 'George Town', 'Johor Bahru', 'Ipoh',
+        'Kuching', 'Kota Kinabalu', 'Melaka', 'Cyberjaya', 'Putrajaya',
+    ];
+
+    /**
+     * Skills pool — random picks per job.
+     */
+    protected array $skillsPool = [
+        'Communication', 'Teamwork', 'Problem Solving', 'Time Management',
+        'Leadership', 'Critical Thinking', 'Adaptability', 'Project Management',
+        'Microsoft Office', 'Data Analysis', 'Customer Service', 'Negotiation',
+        'PHP', 'Laravel', 'JavaScript', 'React', 'Vue.js', 'Node.js',
+        'Python', 'Java', 'MySQL', 'PostgreSQL', 'Docker', 'Kubernetes',
+        'AWS', 'Azure', 'Git', 'Agile', 'Scrum', 'Figma', 'Adobe Creative Suite',
+    ];
+
+    /**
+     * Run the seeder.
+     */
     public function run(): void
     {
         $employers = Employer::all();
 
         if ($employers->isEmpty()) {
-            $this->command->warn('⚠️  No employers found. Run EmployerSeeder first.');
+            $this->command->error('❌ No employers found. Run EmployerWithUserSeeder first.');
             return;
         }
 
-        // Job templates by industry
-        $jobsByIndustry = [
-            'Technology' => [
-                ['title' => 'Senior Frontend Developer',  'level' => 'Senior',   'min' => 8000,  'max' => 12000],
-                ['title' => 'Backend Engineer (PHP)',     'level' => 'Mid',      'min' => 6000,  'max' => 9500],
-                ['title' => 'Full Stack Developer',       'level' => 'Senior',   'min' => 9000,  'max' => 14000],
-                ['title' => 'DevOps Engineer',            'level' => 'Mid',      'min' => 9000,  'max' => 14000],
-                ['title' => 'Mobile Developer (Flutter)', 'level' => 'Mid',      'min' => 7000,  'max' => 11000],
-                ['title' => 'QA Engineer',                'level' => 'Junior',   'min' => 4000,  'max' => 6500],
-                ['title' => 'Cloud Architect',            'level' => 'Lead',     'min' => 15000, 'max' => 22000],
-                ['title' => 'Laravel Developer',          'level' => 'Mid',      'min' => 6500,  'max' => 10000],
-                ['title' => 'React Native Developer',     'level' => 'Mid',      'min' => 7000,  'max' => 11000],
-                ['title' => 'Data Engineer',              'level' => 'Senior',   'min' => 10000, 'max' => 16000],
-                ['title' => 'Software Engineer Intern',   'level' => 'Intern',   'min' => 1200,  'max' => 2000],
-                ['title' => 'Technical Lead',             'level' => 'Lead',     'min' => 14000, 'max' => 20000],
-            ],
-            'Design' => [
-                ['title' => 'Senior UI/UX Designer',      'level' => 'Senior',   'min' => 7000,  'max' => 11000],
-                ['title' => 'Graphic Designer',           'level' => 'Junior',   'min' => 3500,  'max' => 5500],
-                ['title' => 'Product Designer',           'level' => 'Mid',      'min' => 6000,  'max' => 9500],
-                ['title' => 'Motion Graphics Designer',   'level' => 'Mid',      'min' => 5500,  'max' => 8500],
-                ['title' => 'Brand Designer',             'level' => 'Senior',   'min' => 8000,  'max' => 12000],
-            ],
-            'Finance' => [
-                ['title' => 'Financial Analyst',          'level' => 'Mid',      'min' => 6000,  'max' => 9000],
-                ['title' => 'Senior Accountant',          'level' => 'Senior',   'min' => 7500,  'max' => 11000],
-                ['title' => 'Investment Analyst',         'level' => 'Mid',      'min' => 8000,  'max' => 13000],
-                ['title' => 'Risk Manager',               'level' => 'Senior',   'min' => 10000, 'max' => 16000],
-                ['title' => 'Audit Associate',            'level' => 'Junior',   'min' => 4000,  'max' => 6000],
-            ],
-            'Marketing' => [
-                ['title' => 'Digital Marketing Manager',  'level' => 'Senior',   'min' => 8000,  'max' => 12000],
-                ['title' => 'SEO Specialist',             'level' => 'Mid',      'min' => 4500,  'max' => 7000],
-                ['title' => 'Content Writer',             'level' => 'Junior',   'min' => 3000,  'max' => 5000],
-                ['title' => 'Social Media Manager',       'level' => 'Mid',      'min' => 5000,  'max' => 8000],
-                ['title' => 'Brand Manager',              'level' => 'Senior',   'min' => 9000,  'max' => 13000],
-            ],
-            'Healthcare' => [
-                ['title' => 'Registered Nurse',           'level' => 'Mid',      'min' => 4000,  'max' => 6500],
-                ['title' => 'Medical Laboratory Tech',    'level' => 'Mid',      'min' => 3800,  'max' => 5800],
-                ['title' => 'Pharmacist',                 'level' => 'Mid',      'min' => 5500,  'max' => 8500],
-                ['title' => 'Healthcare Administrator',   'level' => 'Senior',   'min' => 7000,  'max' => 11000],
-                ['title' => 'Clinical Research Associate','level' => 'Mid',      'min' => 5000,  'max' => 8000],
-            ],
-            'Education' => [
-                ['title' => 'Mathematics Teacher',        'level' => 'Mid',      'min' => 4000,  'max' => 6500],
-                ['title' => 'Curriculum Developer',       'level' => 'Senior',   'min' => 6500,  'max' => 9500],
-                ['title' => 'Academic Counselor',         'level' => 'Mid',      'min' => 4500,  'max' => 7000],
-                ['title' => 'Online Course Instructor',   'level' => 'Mid',      'min' => 4000,  'max' => 7000],
-                ['title' => 'Education Technology Lead',  'level' => 'Senior',   'min' => 8000,  'max' => 12000],
-            ],
-            'Engineering' => [
-                ['title' => 'Civil Engineer',             'level' => 'Mid',      'min' => 5500,  'max' => 8500],
-                ['title' => 'Mechanical Engineer',        'level' => 'Mid',      'min' => 5500,  'max' => 8500],
-                ['title' => 'Project Engineer',           'level' => 'Senior',   'min' => 8000,  'max' => 12000],
-                ['title' => 'Electrical Engineer',        'level' => 'Mid',      'min' => 5500,  'max' => 8500],
-                ['title' => 'Site Supervisor',            'level' => 'Mid',      'min' => 5000,  'max' => 7500],
-            ],
-            'E-Commerce' => [
-                ['title' => 'E-Commerce Manager',         'level' => 'Senior',   'min' => 8000,  'max' => 13000],
-                ['title' => 'Marketplace Specialist',     'level' => 'Mid',      'min' => 5000,  'max' => 8000],
-                ['title' => 'Product Listing Executive',  'level' => 'Junior',   'min' => 3200,  'max' => 5000],
-                ['title' => 'Customer Success Manager',   'level' => 'Mid',      'min' => 5500,  'max' => 8500],
-            ],
-            'Retail' => [
-                ['title' => 'Store Manager',              'level' => 'Senior',   'min' => 5500,  'max' => 8500],
-                ['title' => 'Retail Sales Associate',     'level' => 'Junior',   'min' => 2200,  'max' => 3500],
-                ['title' => 'Visual Merchandiser',        'level' => 'Mid',      'min' => 3500,  'max' => 5500],
-            ],
-            'Hospitality' => [
-                ['title' => 'Hotel Manager',              'level' => 'Senior',   'min' => 7000,  'max' => 11000],
-                ['title' => 'Front Desk Officer',         'level' => 'Junior',   'min' => 2500,  'max' => 4000],
-                ['title' => 'Chef de Partie',             'level' => 'Mid',      'min' => 4000,  'max' => 6500],
-                ['title' => 'F&B Supervisor',             'level' => 'Mid',      'min' => 3500,  'max' => 5500],
-            ],
-            'Logistics' => [
-                ['title' => 'Logistics Coordinator',      'level' => 'Mid',      'min' => 4000,  'max' => 6500],
-                ['title' => 'Supply Chain Manager',       'level' => 'Senior',   'min' => 9000,  'max' => 14000],
-                ['title' => 'Warehouse Supervisor',       'level' => 'Mid',      'min' => 3500,  'max' => 5500],
-                ['title' => 'Fleet Operations Executive', 'level' => 'Junior',   'min' => 3000,  'max' => 4500],
-            ],
-            'Consulting' => [
-                ['title' => 'Business Consultant',        'level' => 'Senior',   'min' => 9000,  'max' => 15000],
-                ['title' => 'Strategy Analyst',           'level' => 'Mid',      'min' => 6500,  'max' => 10000],
-                ['title' => 'Management Trainee',         'level' => 'Junior',   'min' => 3500,  'max' => 5500],
-            ],
-            'Telecommunications' => [
-                ['title' => 'Network Engineer',           'level' => 'Mid',      'min' => 6000,  'max' => 9500],
-                ['title' => 'Telecom Sales Executive',    'level' => 'Junior',   'min' => 3000,  'max' => 5000],
-                ['title' => 'RF Engineer',                'level' => 'Mid',      'min' => 6500,  'max' => 10000],
-            ],
-            'Media' => [
-                ['title' => 'Video Editor',               'level' => 'Mid',      'min' => 4000,  'max' => 6500],
-                ['title' => 'Content Producer',           'level' => 'Mid',      'min' => 5000,  'max' => 8000],
-                ['title' => 'Journalist',                 'level' => 'Mid',      'min' => 3500,  'max' => 6000],
-                ['title' => 'Social Media Executive',     'level' => 'Junior',   'min' => 3000,  'max' => 5000],
-            ],
-        ];
+        DB::transaction(function () use ($employers) {
+            $totalJobs = 0;
+            $totalQuestions = 0;
 
-        $locations       = ['Kuala Lumpur', 'Selangor', 'Penang', 'Johor', 'Sarawak', 'Sabah', 'Remote'];
-        $workTypes       = ['On-site', 'Remote', 'Hybrid'];
-        $employmentTypes = ['Full-time', 'Part-time', 'Contract', 'Internship', 'Temporary'];
+            foreach ($employers as $employer) {
+                $jobCount = rand(3, 10);
 
-        $educationReqs = [
-            'SPM / O-Level',
-            'Diploma',
-            "Bachelor's Degree",
-            "Master's Degree",
-            'PhD',
-            'Any',
-        ];
+                $templates = $this->jobTemplates[$employer->industry]
+                    ?? $this->jobTemplates['General'];
 
-        $departments = [
-            'Technology'         => ['Engineering', 'IT', 'Product', 'DevOps'],
-            'Design'             => ['Design', 'Creative', 'Product'],
-            'Finance'            => ['Finance', 'Accounting', 'Risk'],
-            'Marketing'          => ['Marketing', 'Growth', 'Content'],
-            'Healthcare'         => ['Clinical', 'Medical', 'Operations'],
-            'Education'          => ['Academic', 'Teaching', 'Curriculum'],
-            'Engineering'        => ['Engineering', 'Operations', 'Projects'],
-            'E-Commerce'         => ['E-Commerce', 'Marketplace', 'Operations'],
-            'Retail'             => ['Retail', 'Store Operations', 'Merchandising'],
-            'Hospitality'        => ['Front Office', 'F&B', 'Housekeeping'],
-            'Logistics'          => ['Logistics', 'Supply Chain', 'Warehouse'],
-            'Consulting'         => ['Consulting', 'Strategy', 'Advisory'],
-            'Telecommunications' => ['Network', 'Engineering', 'Sales'],
-            'Media'              => ['Production', 'Editorial', 'Content'],
-        ];
+                shuffle($templates);
 
-        $totalJobs = 0;
+                for ($i = 0; $i < $jobCount; $i++) {
+                    $template = $templates[$i % count($templates)];
+                    [$title, $department, $expLevel, $salMin, $salMax] = $template;
 
-        foreach ($employers as $employer) {
-            $industry = $employer->industry ?? 'Technology';
-            $jobs     = $jobsByIndustry[$industry] ?? $jobsByIndustry['Technology'];
-            $deptList = $departments[$industry] ?? ['General'];
+                    $publishedAt = Carbon::now()->subDays(rand(1, 60));
+                    $closingAt   = rand(0, 1)
+                        ? $publishedAt->copy()->addDays(rand(30, 90))
+                        : null;
 
-            $count = rand(2, 6);
+                    $job = JobPost::create([
+                        'title'                 => $title,
+                        'description'           => $this->generateDescription($title, $employer->company_name),
+                        'requirements'          => $this->generateRequirements($expLevel),
+                        'benefits'              => $this->generateBenefits(),
+                        'department'            => $department,
+                        'location'              => $employer->headquarters
+                                                    ?: $this->locations[array_rand($this->locations)],
+                        'work_type'             => $this->pickWorkType(),
+                        'employment_type'       => $this->mapEmploymentType($expLevel),
+                        'experience_level'      => $expLevel,
+                        'salary_min'            => $salMin,
+                        'salary_max'            => $salMax,
+                        'currency'              => 'RM',
+                        'required_skills'       => $this->pickSkills(4, 7),
+                        'preferred_skills'      => $this->pickSkills(2, 4),
+                        'education_requirement' => $this->pickEducation($expLevel),
+                        'employer_id'           => $employer->id,
+                        'recruiter_id'          => null,
+                        'visibility'            => $this->pickVisibility(),
+                        'status'                => $this->pickStatus(),
+                        'is_ai_generated'       => false,
+                        'published_at'          => $publishedAt,
+                        'closing_at'            => $closingAt,
+                        'max_applications'      => rand(0, 1) ? rand(50, 200) : null,
+                        'application_questions' => null,
+                        'created_at'            => $publishedAt,
+                        'updated_at'            => $publishedAt,
+                    ]);
 
-            shuffle($jobs);
-            $selectedJobs = array_slice($jobs, 0, min($count, count($jobs)));
+                    $totalJobs++;
 
-            foreach ($selectedJobs as $job) {
-                $workType       = $workTypes[array_rand($workTypes)];
-                $employmentType = ($job['level'] === 'Intern')
-                    ? 'Internship'
-                    : $employmentTypes[array_rand([0, 0, 0, 1, 2])];
-                $department     = $deptList[array_rand($deptList)];
-                $location       = $employer->headquarters ?: $locations[array_rand($locations)];
-
-                $salaryMin = $job['min'] + rand(-500, 500);
-                $salaryMax = $job['max'] + rand(-500, 1000);
-                if ($salaryMax < $salaryMin) {
-                    $salaryMax = $salaryMin + 1500;
-                }
-
-                $r = rand(1, 100);
-                if ($r <= 85) {
-                    $status      = 'published';
-                    $publishedAt = now()->subDays(rand(1, 60));
-                } elseif ($r <= 95) {
-                    $status      = 'draft';
-                    $publishedAt = null;
-                } else {
-                    $status      = 'closed';
-                    $publishedAt = now()->subDays(rand(60, 180));
-                }
-
-                $visibility = (rand(1, 100) <= 90) ? 'public' : 'private';
-
-                [$requiredSkills, $preferredSkills] = $this->skillsFor($industry);
-
-                $description  = $this->buildDescription($employer, $job, $workType, $employmentType);
-                $requirements = $this->buildRequirements($job, $requiredSkills);
-                $benefits     = $this->buildBenefits();
-
-                $closingAt = $status === 'published'
-                    ? now()->addDays(rand(20, 90))
-                    : null;
-
-                $maxApplications = rand(0, 100) < 40 ? rand(50, 300) : null;
-                $isAiGenerated   = rand(0, 100) < 30;
-
-                $jobPost = JobPost::create([
-                    'title'                 => $job['title'],
-                    'description'           => $description,
-                    'requirements'          => $requirements,
-                    'benefits'              => $benefits,
-                    'department'            => $department,
-                    'location'              => $location,
-                    'work_type'             => $workType,
-                    'employment_type'       => $employmentType,
-                    'experience_level'      => $job['level'],
-                    'salary_min'            => $salaryMin,
-                    'salary_max'            => $salaryMax,
-                    'currency'              => 'MYR',
-                    'required_skills'       => $requiredSkills,
-                    'preferred_skills'      => $preferredSkills,
-                    'education_requirement' => $educationReqs[array_rand($educationReqs)],
-                    'employer_id'           => $employer->id,
-                    'recruiter_id'          => null, // ✅ no recruiter — relies on nullable column
-                    'visibility'            => $visibility,
-                    'status'                => $status,
-                    'is_ai_generated'       => $isAiGenerated,
-                    'published_at'          => $publishedAt,
-                    'closing_at'            => $closingAt,
-                    'max_applications'      => $maxApplications,
-                    'application_questions' => null,
-                ]);
-
-                $totalJobs++;
-
-                if (rand(1, 100) <= 60) {
-                    $this->seedQuestions($jobPost);
+                    // 30% of jobs get 2–5 screening questions
+                    if (rand(1, 100) <= 30) {
+                        $qCount = rand(2, 5);
+                        $this->seedQuestions($job, $qCount);
+                        $totalQuestions += $qCount;
+                    }
                 }
             }
-        }
 
-        $this->command->info("✅ Seeded {$totalJobs} job posts across {$employers->count()} employers.");
+            $this->command->info("✅ Seeded {$totalJobs} job posts and {$totalQuestions} job questions.");
+        });
     }
 
-    private function skillsFor(string $industry): array
+    // ===== QUESTION SEEDER =====
+
+    protected function seedQuestions(JobPost $job, int $count): void
     {
-        $skillMap = [
-            'Technology' => [
-                'required'  => ['PHP', 'Laravel', 'MySQL', 'Git', 'REST API', 'JavaScript'],
-                'preferred' => ['Docker', 'AWS', 'Redis', 'React', 'Vue', 'TypeScript', 'Livewire'],
-            ],
-            'Design' => [
-                'required'  => ['Figma', 'Adobe XD', 'Photoshop', 'Illustrator'],
-                'preferred' => ['Sketch', 'After Effects', 'InVision', 'HTML', 'CSS'],
-            ],
-            'Finance' => [
-                'required'  => ['Excel', 'Financial Analysis', 'Accounting'],
-                'preferred' => ['SQL', 'Power BI', 'Tableau', 'SAP'],
-            ],
-            'Marketing' => [
-                'required'  => ['SEO', 'Google Analytics', 'Content Marketing', 'Social Media'],
-                'preferred' => ['Google Ads', 'Facebook Ads', 'HubSpot', 'Mailchimp'],
-            ],
-            'Healthcare' => [
-                'required'  => ['Patient Care', 'Medical Records', 'Communication'],
-                'preferred' => ['EMR Systems', 'Clinical Research', 'CPR Certified'],
-            ],
-            'Education' => [
-                'required'  => ['Teaching', 'Lesson Planning', 'Classroom Management'],
-                'preferred' => ['Google Classroom', 'LMS', 'Curriculum Design'],
-            ],
-            'Engineering' => [
-                'required'  => ['AutoCAD', 'Project Management', 'Problem Solving'],
-                'preferred' => ['SolidWorks', 'MATLAB', 'Primavera'],
-            ],
-            'E-Commerce' => [
-                'required'  => ['E-Commerce Platforms', 'Excel', 'Customer Service'],
-                'preferred' => ['Shopify', 'WooCommerce', 'SEO', 'Google Analytics'],
-            ],
-            'Retail' => [
-                'required'  => ['Customer Service', 'Sales', 'POS Systems'],
-                'preferred' => ['Inventory Management', 'Visual Merchandising'],
-            ],
-            'Hospitality' => [
-                'required'  => ['Customer Service', 'Communication', 'Hospitality'],
-                'preferred' => ['Food Safety', 'Barista Skills', 'POS Systems'],
-            ],
-            'Logistics' => [
-                'required'  => ['Inventory Management', 'Excel', 'Logistics'],
-                'preferred' => ['SAP', 'WMS', 'Supply Chain'],
-            ],
-            'Consulting' => [
-                'required'  => ['Business Analysis', 'Communication', 'Excel'],
-                'preferred' => ['PowerPoint', 'SQL', 'Tableau', 'Project Management'],
-            ],
-            'Telecommunications' => [
-                'required'  => ['Networking', 'TCP/IP', 'Communication'],
-                'preferred' => ['Cisco', 'Linux', 'Python'],
-            ],
-            'Media' => [
-                'required'  => ['Content Creation', 'Communication', 'Editing'],
-                'preferred' => ['Adobe Premiere', 'Photoshop', 'SEO'],
-            ],
-        ];
+        $pool = $this->questionPool();
+        shuffle($pool);
 
-        $base = $skillMap[$industry] ?? $skillMap['Technology'];
-        return [$base['required'], $base['preferred']];
-    }
+        for ($i = 0; $i < $count; $i++) {
+            $q = $pool[$i % count($pool)];
 
-    private function buildDescription($employer, array $job, string $workType, string $employmentType): string
-    {
-        $companyName = $employer->company_name;
-        $title       = $job['title'];
-        $level       = $job['level'];
-
-        return "We are looking for a talented {$level} {$title} to join our growing team at {$companyName}. "
-             . "This is a {$employmentType} position with {$workType} working arrangement.\n\n"
-             . "As part of our team, you'll collaborate with passionate professionals to deliver high-quality results "
-             . "for our clients and stakeholders. You'll have the opportunity to work on exciting projects, grow your skills, "
-             . "and make a real impact.\n\n"
-             . "We value innovation, integrity, and teamwork. If you're ready to take the next step in your career, "
-             . "we'd love to hear from you!";
-    }
-
-    private function buildRequirements(array $job, array $requiredSkills): string
-    {
-        $skillsList = implode(', ', array_slice($requiredSkills, 0, 5));
-
-        return "• Minimum {$job['level']} level experience in a similar role\n"
-             . "• Strong proficiency in: {$skillsList}\n"
-             . "• Excellent communication and teamwork skills\n"
-             . "• Ability to work independently and meet deadlines\n"
-             . "• Problem-solving mindset with attention to detail\n"
-             . "• Willingness to learn and adapt to new technologies\n"
-             . "• Relevant certifications or portfolio are a plus";
-    }
-
-    private function buildBenefits(): string
-    {
-        $benefits = [
-            'Competitive salary package',
-            'EPF, SOCSO, and EIS contributions',
-            'Medical and dental insurance',
-            'Annual leave and medical leave',
-            'Flexible working hours',
-            'Career development opportunities',
-            'Team building activities',
-            'Performance bonus',
-            'Professional certification support',
-            'Modern office environment',
-            'Free snacks and beverages',
-            'Work-from-home allowance',
-        ];
-
-        shuffle($benefits);
-        $selected = array_slice($benefits, 0, rand(5, 8));
-
-        return '• ' . implode("\n• ", $selected);
-    }
-
-    private function seedQuestions(JobPost $jobPost): void
-    {
-        $questionPool = [
-            ['q' => 'Why are you interested in this position?',                 'type' => 'textarea', 'required' => true],
-            ['q' => 'How many years of relevant experience do you have?',       'type' => 'text',     'required' => true],
-            ['q' => 'What is your expected monthly salary (MYR)?',              'type' => 'text',     'required' => true],
-            ['q' => 'When can you start?',                                      'type' => 'text',     'required' => true],
-            ['q' => 'Are you legally authorized to work in Malaysia?',          'type' => 'radio',    'required' => true, 'options' => ['Yes', 'No']],
-            ['q' => 'Do you require visa sponsorship?',                         'type' => 'radio',    'required' => false, 'options' => ['Yes', 'No']],
-            ['q' => 'What is your highest education level?',                    'type' => 'select',   'required' => true, 'options' => ['SPM', 'Diploma', "Bachelor's Degree", "Master's Degree", 'PhD']],
-            ['q' => 'Describe a challenging project you worked on.',            'type' => 'textarea', 'required' => false],
-            ['q' => 'Are you comfortable with the working arrangement?',        'type' => 'radio',    'required' => true, 'options' => ['Yes', 'No']],
-            ['q' => 'Portfolio or GitHub URL (if applicable):',                 'type' => 'text',     'required' => false],
-        ];
-
-        shuffle($questionPool);
-        $count    = rand(2, 4);
-        $selected = array_slice($questionPool, 0, $count);
-
-        foreach ($selected as $order => $q) {
             JobPostQuestion::create([
-                'job_post_id' => $jobPost->id,
-                'question'    => $q['q'],
+                'job_post_id' => $job->id,
+                'question'    => $q['question'],
                 'type'        => $q['type'],
-                'required'    => $q['required'],
+                'required'    => $q['required'] ?? true,
                 'options'     => $q['options'] ?? null,
-                'order'       => $order + 1,
+                'order'       => $i + 1,
             ]);
         }
+    }
+
+    /**
+     * All types match the ENUM:
+     * 'text', 'textarea', 'select', 'checkbox', 'file'
+     */
+    protected function questionPool(): array
+    {
+        return [
+            [
+                'question' => 'Do you have the legal right to work in Malaysia?',
+                'type'     => 'select',
+                'required' => true,
+                'options'  => ['Yes', 'No'],
+            ],
+            [
+                'question' => 'How many years of relevant experience do you have?',
+                'type'     => 'select',
+                'required' => true,
+                'options'  => ['Less than 1 year', '1–3 years', '3–5 years', '5–10 years', '10+ years'],
+            ],
+            [
+                'question' => 'What is your expected monthly salary (RM)?',
+                'type'     => 'text',
+                'required' => true,
+            ],
+            [
+                'question' => 'What is your notice period?',
+                'type'     => 'select',
+                'required' => true,
+                'options'  => ['Immediately', '2 weeks', '1 month', '2 months', '3 months or more'],
+            ],
+            [
+                'question' => 'Are you willing to work on-site?',
+                'type'     => 'select',
+                'required' => true,
+                'options'  => ['Yes', 'No'],
+            ],
+            [
+                'question' => 'Tell us why you want to join our company.',
+                'type'     => 'textarea',
+                'required' => false,
+            ],
+            [
+                'question' => 'Do you have experience in our industry?',
+                'type'     => 'select',
+                'required' => false,
+                'options'  => ['Yes', 'No'],
+            ],
+            [
+                'question' => 'Which of the following languages are you fluent in?',
+                'type'     => 'checkbox',
+                'required' => true,
+                'options'  => ['English', 'Bahasa Malaysia', 'Mandarin', 'Tamil'],
+            ],
+            [
+                'question' => 'What is your highest education level?',
+                'type'     => 'select',
+                'required' => true,
+                'options'  => ['SPM', 'Diploma', "Bachelor's Degree", "Master's Degree", 'PhD'],
+            ],
+            [
+                'question' => 'Upload your portfolio (PDF, optional)',
+                'type'     => 'file',
+                'required' => false,
+            ],
+            [
+                'question' => 'Portfolio / LinkedIn / GitHub URL (optional)',
+                'type'     => 'text',
+                'required' => false,
+            ],
+            [
+                'question' => 'Describe a challenging project you worked on.',
+                'type'     => 'textarea',
+                'required' => false,
+            ],
+        ];
+    }
+
+    // ===== TEXT GENERATORS =====
+
+    protected function generateDescription(string $title, string $company): string
+    {
+        return "We are looking for a talented {$title} to join {$company}. "
+             . "In this role, you will work closely with cross-functional teams to deliver high-quality results. "
+             . "You will have the opportunity to grow your skills, take ownership of projects, and make a real impact. "
+             . "If you are passionate, driven, and eager to learn, we want to hear from you.";
+    }
+
+    protected function generateRequirements(string $expLevel): string
+    {
+        $lines = match ($expLevel) {
+            'internship' => [
+                "Currently pursuing a Diploma or Bachelor's Degree",
+                'Strong willingness to learn and adapt',
+                'Good communication skills in English and Bahasa Malaysia',
+                'Able to commit to a 3–6 month internship',
+            ],
+            'junior' => [
+                '0–2 years of relevant experience',
+                "Bachelor's Degree or Diploma in a related field",
+                'Strong communication and teamwork skills',
+                'Willingness to learn and take initiative',
+            ],
+            'mid' => [
+                '3–5 years of relevant experience',
+                "Bachelor's Degree in a related field",
+                'Proven track record in a similar role',
+                'Strong problem-solving and analytical skills',
+            ],
+            'senior' => [
+                '5+ years of relevant experience',
+                "Bachelor's or Master's Degree in a related field",
+                'Demonstrated leadership and mentoring capabilities',
+                'Strong stakeholder management skills',
+            ],
+            'lead' => [
+                '8+ years of relevant experience',
+                'Proven experience leading teams and delivering projects',
+                'Excellent communication and strategic thinking',
+                "Bachelor's or Master's Degree in a related field",
+            ],
+            default => ['Relevant experience and education'],
+        };
+
+        return implode("\n", array_map(fn ($l) => "• {$l}", $lines));
+    }
+
+    protected function generateBenefits(): string
+    {
+        $all = [
+            'Competitive salary', 'EPF & SOCSO contribution', 'Medical insurance',
+            'Dental & optical allowance', 'Annual bonus', 'Performance bonus',
+            'Flexible working hours', 'Work from home options', 'Free parking',
+            'Gym membership subsidy', 'Annual leave above statutory',
+            'Training & development budget', 'Career growth opportunities',
+            'Team building activities', 'Company retreat', 'Free snacks & drinks',
+            'Phone & internet allowance', 'Relocation assistance',
+        ];
+        shuffle($all);
+        $picked = array_slice($all, 0, rand(4, 7));
+        return implode("\n", array_map(fn ($b) => "• {$b}", $picked));
+    }
+
+    // ===== ENUM PICKERS =====
+
+    /**
+     * work_type ENUM: 'remote', 'onsite', 'hybrid'
+     * Weighted: 50% onsite, 30% hybrid, 20% remote
+     */
+    protected function pickWorkType(): string
+    {
+        $roll = rand(1, 100);
+        if ($roll <= 50) return 'onsite';
+        if ($roll <= 80) return 'hybrid';
+        return 'remote';
+    }
+
+    /**
+     * employment_type ENUM:
+     * 'full_time', 'part_time', 'contract', 'internship', 'freelance'
+     */
+    protected function mapEmploymentType(string $expLevel): string
+    {
+        if ($expLevel === 'internship') {
+            return 'internship';
+        }
+
+        // 75% full_time, 10% contract, 10% part_time, 5% freelance
+        $roll = rand(1, 100);
+        if ($roll <= 75) return 'full_time';
+        if ($roll <= 85) return 'contract';
+        if ($roll <= 95) return 'part_time';
+        return 'freelance';
+    }
+
+    /**
+     * visibility ENUM: 'public', 'private', 'agency_only'
+     * Weighted: 85% public, 10% private, 5% agency_only
+     */
+    protected function pickVisibility(): string
+    {
+        $roll = rand(1, 100);
+        if ($roll <= 85) return 'public';
+        if ($roll <= 95) return 'private';
+        return 'agency_only';
+    }
+
+    /**
+     * status ENUM: 'draft', 'published', 'closed', 'paused'
+     * Weighted: 80% published, 8% draft, 7% paused, 5% closed
+     * (So most jobs show on listings but some are hidden/closing)
+     */
+    protected function pickStatus(): string
+    {
+        $roll = rand(1, 100);
+        if ($roll <= 80) return 'published';
+        if ($roll <= 88) return 'draft';
+        if ($roll <= 95) return 'paused';
+        return 'closed';
+    }
+
+    // ===== OTHER HELPERS =====
+
+    protected function pickEducation(string $expLevel): string
+    {
+        if ($expLevel === 'internship') return "Bachelor's Degree";
+
+        return match (rand(1, 4)) {
+            1       => 'SPM',
+            2       => 'Diploma',
+            3       => "Bachelor's Degree",
+            default => "Master's Degree",
+        };
+    }
+
+    protected function pickSkills(int $min, int $max): array
+    {
+        $count = rand($min, $max);
+        $pool  = $this->skillsPool;
+        shuffle($pool);
+        return array_values(array_slice($pool, 0, $count));
     }
 }
