@@ -133,6 +133,61 @@
                 @endif
             </div>
 
+            <!-- ===== APPLICATION ANSWERS ===== -->
+            @php
+                // Answers ko array banao — chahe JSON string ho ya array
+                $answers = $application->answers;
+                if (is_string($answers)) {
+                    $answers = json_decode($answers, true) ?? [];
+                }
+                if (!is_array($answers)) {
+                    $answers = [];
+                }
+
+                // Job post ke questions
+                $questions = $application->jobPost->questions ?? collect();
+            @endphp
+
+            @if($questions->count())
+                <div class="bg-white rounded-lg border border-gray-200 p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-base font-semibold text-gray-900">Application Answers</h3>
+                        <span class="text-xs text-gray-500">
+                            {{ $questions->count() }} {{ \Illuminate\Support\Str::plural('question', $questions->count()) }}
+                        </span>
+                    </div>
+
+                    <div class="space-y-4">
+                        @foreach($questions as $index => $question)
+                            @php
+                                $answer = $answers[$question->id] ?? ($answers[$index] ?? null);
+                            @endphp
+
+                            <div class="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                                <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Q{{ $loop->iteration }}. {{ $question->question ?? $question->title ?? 'Question' }}
+                                </label>
+                                <div class="mt-2 text-sm text-gray-900">
+                                    @if(is_array($answer))
+                                        <ul class="list-disc list-inside space-y-1 text-gray-700">
+                                            @foreach($answer as $item)
+                                                <li>{{ $item }}</li>
+                                            @endforeach
+                                        </ul>
+                                    @elseif(!is_null($answer) && $answer !== '')
+                                        <div class="p-3 bg-gray-50 rounded-lg text-gray-700">
+                                            {{ $answer }}
+                                        </div>
+                                    @else
+                                        <span class="text-gray-400 italic">Not answered</span>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
             <!-- ===== JOB DETAILS ===== -->
             <div class="bg-white rounded-lg border border-gray-200 p-5">
                 <h3 class="text-base font-semibold text-gray-900 mb-4">Job Details</h3>
@@ -203,7 +258,6 @@
                         </div>
                     </div>
 
-                    <!-- Status: Shortlisted (only if shortlisted_at has value) -->
                     @if($application->shortlisted_at)
                     <div class="relative pl-6">
                         <div class="absolute -left-[22px] top-0.5 w-3 h-3 rounded-full bg-blue-500 ring-4 ring-white"></div>
@@ -217,7 +271,6 @@
                     </div>
                     @endif
 
-                    <!-- Status: Interview (only if interview_at has value) -->
                     @if($application->interview_at)
                     <div class="relative pl-6">
                         <div class="absolute -left-[22px] top-0.5 w-3 h-3 rounded-full bg-purple-500 ring-4 ring-white"></div>
@@ -241,7 +294,6 @@
                     </div>
                     @endif
 
-                    <!-- Status: Hired (only if hired_at has value) -->
                     @if($application->hired_at)
                     <div class="relative pl-6">
                         <div class="absolute -left-[22px] top-0.5 w-3 h-3 rounded-full bg-emerald-500 ring-4 ring-white"></div>
@@ -255,7 +307,6 @@
                     </div>
                     @endif
 
-                    <!-- Status: Rejected (only if rejected_at has value) -->
                     @if($application->rejected_at)
                     <div class="relative pl-6">
                         <div class="absolute -left-[22px] top-0.5 w-3 h-3 rounded-full bg-red-500 ring-4 ring-white"></div>
@@ -269,7 +320,6 @@
                     </div>
                     @endif
 
-                    <!-- Current Status Indicator (Always shown) -->
                     <div class="relative pl-6">
                         <div class="absolute -left-[22px] top-0.5 w-3 h-3 rounded-full 
                             @if($application->status === 'pending') bg-amber-500
@@ -335,7 +385,6 @@
                         </button>
                     @endif
 
-                    <!-- Update Status Button -->
                     <button onclick="openStatusModal()"
                             class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#1a237e] text-white text-sm font-medium rounded-lg hover:bg-[#0d1445] transition-all duration-200">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -345,25 +394,19 @@
                     </button>
 
                     <button onclick="openScheduleModal(event, {{ $application->id }})"
-                    title="Schedule Interview"
-                                        id="schedule-btn-{{ $application->id }}"
-                                        {{ $application->status === 'scheduled' ? 'disabled style="opacity:0.6;cursor:not-allowed;"' : '' }}
-                     class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-50 text-emerald-700 text-sm font-medium rounded-lg hover:bg-emerald-100 transition-all duration-200 schedule-interview">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                        </svg>
-                       @if($application->status === 'scheduled')
-                                        <!-- <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                        </svg> -->
-                                        <span>Scheduled ✓</span>
-                                    @else
-                                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11v4m0 0h-2m2 0h2"/>
-                                        </svg>
-                                        <span id="btn-text-{{ $application->id }}">Schedule Interview</span>
-                                    @endif
+                            title="Schedule Interview"
+                            id="schedule-btn-{{ $application->id }}"
+                            {{ $application->status === 'scheduled' ? 'disabled style="opacity:0.6;cursor:not-allowed;"' : '' }}
+                            class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-50 text-emerald-700 text-sm font-medium rounded-lg hover:bg-emerald-100 transition-all duration-200 schedule-interview">
+                        @if($application->status === 'scheduled')
+                            <span>Scheduled ✓</span>
+                        @else
+                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11v4m0 0h-2m2 0h2"/>
+                            </svg>
+                            <span id="btn-text-{{ $application->id }}">Schedule Interview</span>
+                        @endif
                     </button>
 
                     <button onclick="confirmDelete({{ $application->id }})"
@@ -374,7 +417,6 @@
                         Delete Application
                     </button>
 
-                    <!-- Hidden Forms -->
                     <form id="delete-form-{{ $application->id }}"
                           action="{{ route('employer.applications.destroy', $application->id) }}"
                           method="POST" class="hidden">
@@ -384,14 +426,12 @@
                 </div>
             </div>
 
-            
         </div>
     </div>
 </div>
 
-<!-- ===== STATUS UPDATE MODAL (Centered) ===== -->
+<!-- ===== STATUS UPDATE MODAL ===== -->
 <div id="statusModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 flex">
-    <!-- Backdrop with blur -->
     <div class="fixed inset-0 backdrop-blur-sm bg-black/30 transition-opacity" onclick="closeStatusModal()"></div>
     
     <div class="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto relative">
@@ -436,15 +476,12 @@
     </div>
 </div>
 
-<!-- ===== SCHEDULE INTERVIEW MODAL (CENTERED) ===== -->
+<!-- ===== SCHEDULE INTERVIEW MODAL ===== -->
 <div id="scheduleModal" class="fixed inset-0 z-50 hidden" style="display:none;">
-    <!-- Backdrop with blur -->
     <div class="fixed inset-0 backdrop-blur-sm bg-black/30 transition-opacity" onclick="closeScheduleModal()"></div>
     
-    <!-- Modal Container - Centered -->
     <div class="fixed inset-0 flex items-center justify-center p-4">
         <div class="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto relative transform transition-all">
-            <!-- Close button -->
             <button type="button" 
                     onclick="closeScheduleModal()"
                     class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors p-1">
@@ -535,13 +572,13 @@
         </div>
     </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    // ===== OPEN STATUS MODAL (Centered) =====
     function openStatusModal() {
         const modal = document.getElementById('statusModal');
         modal.classList.remove('hidden');
-        modal.style.display = 'flex'; // Ensure flex display for centering
+        modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
     }
 
@@ -552,29 +589,22 @@
         document.body.style.overflow = '';
     }
 
-    // Close modal on backdrop click
     document.addEventListener('DOMContentLoaded', function() {
         const modal = document.getElementById('statusModal');
         if (modal) {
             modal.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    closeStatusModal();
-                }
+                if (e.target === this) closeStatusModal();
             });
         }
     });
 
-    // Close modal on Escape key
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             const modal = document.getElementById('statusModal');
-            if (modal && !modal.classList.contains('hidden')) {
-                closeStatusModal();
-            }
+            if (modal && !modal.classList.contains('hidden')) closeStatusModal();
         }
     });
 
-    // ===== SAVE STATUS =====
     function saveStatus() {
         const applicationId = document.getElementById('applicationId').value;
         const status = document.getElementById('statusSelect').value;
@@ -589,19 +619,14 @@
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                 'Accept': 'application/json'
             },
-            body: JSON.stringify({
-                status: status,
-                notes: notes
-            })
+            body: JSON.stringify({ status: status, notes: notes })
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
                 showToast(data.message, 'success');
                 closeStatusModal();
-                setTimeout(() => {
-                    location.reload();
-                }, 500);
+                setTimeout(() => location.reload(), 500);
             } else {
                 showToast(data.message || 'Error updating status', 'error');
             }
@@ -612,7 +637,6 @@
         });
     }
 
-    // ===== CONFIRM DELETE =====
     function confirmDelete(id) {
         Swal.fire({
             title: 'Delete Application?',
@@ -630,17 +654,58 @@
         });
     }
 
-    // ===== SCHEDULE INTERVIEW =====
+    function openScheduleModal(event, applicationId) {
+        if (event) event.preventDefault();
+        const modal = document.getElementById('scheduleModal');
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        document.getElementById('scheduleForm').dataset.applicationId = applicationId;
+    }
+
+    function closeScheduleModal() {
+        const modal = document.getElementById('scheduleModal');
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
-        const scheduleBtn = document.querySelector('.schedule-interview');
-        if (scheduleBtn) {
-            scheduleBtn.addEventListener('click', function() {
-                showToast('Interview scheduling feature coming soon!', 'info');
+        const scheduleForm = document.getElementById('scheduleForm');
+        if (scheduleForm) {
+            scheduleForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const applicationId = this.dataset.applicationId;
+                const formData = new FormData(this);
+
+                const url = '{{ route("employer.applications.schedule-interview", ":id") }}'.replace(':id', applicationId);
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message || 'Interview scheduled', 'success');
+                        closeScheduleModal();
+                        setTimeout(() => location.reload(), 500);
+                    } else {
+                        showToast(data.message || 'Error scheduling interview', 'error');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    showToast('Error scheduling interview', 'error');
+                });
             });
         }
     });
 
-    // ===== TOAST NOTIFICATION =====
     function showToast(message, type = 'success') {
         const colors = {
             success: 'bg-emerald-500',
@@ -654,15 +719,10 @@
         toast.textContent = message;
         document.body.appendChild(toast);
 
-        setTimeout(() => {
-            toast.classList.remove('translate-x-full');
-        }, 10);
-
+        setTimeout(() => toast.classList.remove('translate-x-full'), 10);
         setTimeout(() => {
             toast.classList.add('translate-x-full');
-            setTimeout(() => {
-                toast.remove();
-            }, 300);
+            setTimeout(() => toast.remove(), 300);
         }, 3000);
     }
 </script>

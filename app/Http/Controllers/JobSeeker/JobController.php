@@ -182,80 +182,101 @@ class JobController extends Controller
      * Submit the job application
      */
     public function applyJob(Request $request)
-    {
-        // Validate the request
-        $request->validate([
-            'job_post_id' => 'required|exists:job_posts,id',
-            'cover_letter' => 'nullable|string|max:5000',
-            'answers' => 'nullable|array',
-            'answers.*' => 'nullable|string|max:1000',
-            'resume' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
-            'terms' => 'required|accepted',
-        ]);
+{
+    // dd($request->all());
+    // Validate the request
+    $request->validate([
+        'job_post_id' => 'required|exists:job_posts,id',
+        'cover_letter' => 'nullable|string|max:5000',
+        'answers' => 'nullable|array',
+        'answers.*' => 'nullable',
+        'resume' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
+        'terms' => 'required|accepted',
+    ]);
 
-        $jobPostId = $request->job_post_id;
-        $applicantId = auth()->id();
+    $jobPostId = $request->job_post_id;
+    $applicantId = auth()->id();
 
-        // Check if already applied
-        $existingApplication = Application::where('applicant_id', $applicantId)
-            ->where('job_post_id', $jobPostId)
-            ->first();
+    // Check if already applied
+    $existingApplication = Application::where('applicant_id', $applicantId)
+        ->where('job_post_id', $jobPostId)
+        ->first();
 
-        if ($existingApplication) {
-            return redirect()->back()
-                ->with('error', 'You have already applied for this job.');
+    if ($existingApplication) {
+        return redirect()->back()
+            ->with('error', 'You have already applied for this job.');
+    }
+
+    // Check if job exists and is published
+    $job = JobPost::where('id', $jobPostId)
+        ->where('status', 'published')
+        ->whereNull('deleted_at')
+        ->first();
+
+    if (!$job) {
+        return redirect()->back()
+            ->with('error', 'This job is no longer available.');
+    }
+
+    // Handle resume upload
+    $resumePath = null;
+    if ($request->hasFile('resume')) {
+        $resumePath = $request->file('resume')->store('resumes', 'public');
+    } else {
+        $applicantProfile = ApplicantProfile::where('user_id', $applicantId)->first();
+        if ($applicantProfile && $applicantProfile->resume_path) {
+            $resumePath = $applicantProfile->resume_path;
         }
+    }
 
-        // Check if job exists and is published
-        $job = JobPost::where('id', $jobPostId)
-            ->where('status', 'published')
-            ->whereNull('deleted_at')
-            ->first();
+    // ===== Answers ko question ID ke saath map karo =====
+    $answers = [];
+    if ($request->filled('answers') && is_array($request->answers)) {
+        // Job ke questions lao (order + id ke hisaab se)
+        $questionIds = $job->questions()
+            ->orderBy('order', 'asc')
+            ->orderBy('id', 'asc')
+            ->pluck('id')
+            ->toArray();
 
-        if (!$job) {
-            return redirect()->back()
-                ->with('error', 'This job is no longer available.');
-        }
-
-        // Handle resume upload
-        $resumePath = null;
-        if ($request->hasFile('resume')) {
-            $resumePath = $request->file('resume')->store('resumes', 'public');
-        } else {
-            // Use existing resume from profile if available
-            $applicantProfile = ApplicantProfile::where('user_id', $applicantId)->first();
-            if ($applicantProfile && $applicantProfile->resume_path) {
-                $resumePath = $applicantProfile->resume_path;
+        foreach ($request->answers as $key => $value) {
+            // Agar key question ID hai to seedha use karo
+            if (in_array((int) $key, $questionIds, true)) {
+                $answers[(string) $key] = $value;
+            }
+            // Agar numeric index hai (purana format), to question ID se map karo
+            elseif (is_numeric($key) && isset($questionIds[$key])) {
+                $answers[(string) $questionIds[$key]] = $value;
             }
         }
+    }
 
-        // Create application
-        $application = Application::create([
-            'job_post_id' => $jobPostId,
-            'applicant_id' => $applicantId,
-            'status' => Application::STATUS_APPLIED,
-            'cover_letter' => $request->cover_letter,
-            'answers' => $request->answers,
-            'resume_path' => $resumePath,
+    // Create application
+    $application = Application::create([
+        'job_post_id' => $jobPostId,
+        'applicant_id' => $applicantId,
+        'status' => Application::STATUS_APPLIED,
+        'cover_letter' => $request->cover_letter,
+        'answers' => $answers,       // ← question_id keyed array
+        'resume_path' => $resumePath,
+        'applied_at' => now(),
+    ]);
+
+    // Update saved job status if exists
+    $savedJob = SavedJob::where('user_id', $applicantId)
+        ->where('job_post_id', $jobPostId)
+        ->first();
+
+    if ($savedJob) {
+        $savedJob->update([
+            'status' => 'applied',
             'applied_at' => now(),
         ]);
-
-        // Update saved job status if exists
-        $savedJob = SavedJob::where('user_id', $applicantId)
-            ->where('job_post_id', $jobPostId)
-            ->first();
-
-        if ($savedJob) {
-            $savedJob->update([
-                'status' => 'applied',
-                'applied_at' => now(),
-            ]);
-        }
-
-        // Flash success message and redirect
-        return redirect()->route('candidate.jobs.listings')
-            ->with('success', 'Your application has been submitted successfully!');
     }
+
+    return redirect()->route('candidate.jobs.listings')
+        ->with('success', 'Your application has been submitted successfully!');
+}
 
     /**
      * Quick apply for a job (without showing form)

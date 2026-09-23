@@ -71,7 +71,7 @@
                 <div class="relative inline-block">
                     <div class="w-28 h-28 sm:w-32 sm:h-32 rounded-full border-4 border-white bg-white shadow-sm overflow-hidden">
                         @if($user->profile_photo)
-                            <img src="{{ Storage::url($user->profile_photo) }}"
+                            <img src="{{ asset('storage/'.$user->profile_photo) }}"
                                  alt="{{ $user->full_name }}"
                                  class="w-40 object-cover">
                         @else
@@ -190,7 +190,7 @@
             @if($user->applicantProfile && $user->applicantProfile->summary)
             <div class="bg-white rounded-lg border border-gray-200 p-5">
                 <h3 class="text-base font-semibold text-gray-900 mb-2">About</h3>
-                <p class="text-sm text-gray-600 leading-relaxed">{{ $user->applicantProfile->summary }}</p>
+                <p class="text-sm text-gray-600 leading-relaxed">{!! $user->applicantProfile->summary !!}</p>
             </div>
             @endif
 
@@ -637,7 +637,7 @@
                     </svg>
                     Resume
                 </h3>
-                <a href="{{ Storage::url($user->applicantProfile->resume_path) }}" target="_blank" 
+                <a href="{{ asset('storage/'.$user->applicantProfile->resume_path) }}" target="_blank" 
                    class="flex items-center gap-2 text-sm text-[#1a237e] hover:underline">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>

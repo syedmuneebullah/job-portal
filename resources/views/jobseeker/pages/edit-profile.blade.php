@@ -35,7 +35,7 @@
                     <div class="relative">
                         <div class="w-24 h-24 rounded-full border-4 border-gray-100 bg-gray-100 overflow-hidden" id="photoPreview">
                             @if($user->profile_photo)
-                                <img src="{{ Storage::url($user->profile_photo) }}"
+                                <img src="{{ asset('storage/'.$user->profile_photo) }}"
                                      alt="{{ $user->full_name }}"
                                      class="w-full h-full object-cover">
                             @else
@@ -110,9 +110,11 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Summary / bio</label>
-                        <textarea name="summary" rows="4"
-                                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1a237e]/30 focus:border-[#1a237e] outline-none transition-all @error('summary') border-red-500 @enderror"
-                                  placeholder="Tell us about yourself, your experience, and career goals...">{{ old('summary', $user->applicantProfile->summary ?? '') }}</textarea>
+                        
+                        <textarea name="summary" id="summary-editor" rows="4"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1a237e]/30 focus:border-[#1a237e] outline-none transition-all @error('summary') border-red-500 @enderror"
+                                placeholder="Tell us about yourself, your experience, and career goals...">{{ old('summary', $user->applicantProfile->summary ?? '') }}</textarea>
+                        
                         @error('summary')
                             <p class="mt-1 text-sm text-red-500">{{ $message }}</p>
                         @enderror
@@ -257,7 +259,7 @@
                     </div>
                     @if($user->applicantProfile && $user->applicantProfile->resume_path)
                         <p class="mt-2 text-sm text-gray-500">
-                            Current: <a href="{{ Storage::url($user->applicantProfile->resume_path) }}" target="_blank" class="text-[#1a237e] font-medium hover:underline">{{ basename($user->applicantProfile->resume_path) }}</a>
+                            Current: <a href="{{ asset('storage/'.$user->applicantProfile->resume_path) }}" target="_blank" class="text-[#1a237e] font-medium hover:underline">{{ basename($user->applicantProfile->resume_path) }}</a>
                         </p>
                     @endif
                     <p class="text-xs text-gray-400 mt-1">PDF, DOC, DOCX. Max 5MB</p>
@@ -367,8 +369,37 @@
         </div>
     </form>
 </div>
+<!-- CKEditor 5 Classic build -->
+<script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
 
 <script>
+    let summaryEditor;
+
+    ClassicEditor
+        .create(document.querySelector('#summary-editor'), {
+            toolbar: [
+                'heading', '|',
+                'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|',
+                'blockQuote', 'undo', 'redo'
+            ],
+            placeholder: 'Tell us about yourself, your experience, and career goals...',
+        })
+        .then(editor => {
+            summaryEditor = editor;
+        })
+        .catch(error => {
+            console.error(error);
+        });
+
+    // Make sure CKEditor content is synced back to the textarea before submit
+    document.querySelector('form').addEventListener('submit', function () {
+        if (summaryEditor) {
+            document.querySelector('#summary-editor').value = summaryEditor.getData();
+        }
+    });
+</script>
+<script>
+    
     // ===== PREVIEW PROFILE PHOTO BEFORE UPLOAD =====
     document.getElementById('profile_photo')?.addEventListener('change', function(e) {
         const file = e.target.files[0];

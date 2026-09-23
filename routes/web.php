@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\User\HomeController;
 use App\Http\Controllers\ZoomController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\InstallController;
 use App\Http\Controllers\ResumeController;
 use App\Http\Controllers\MatchController;
 use App\Http\Controllers\Auth\User\AuthController;
@@ -36,6 +37,25 @@ Route::get('/jobs/listings', [HomeController::class, 'JobListings'])->name('user
 Route::get('/job/details/{id}', [HomeController::class, 'JobDetails'])->name('user.job.details');
 Route::get('/companies', [HomeController::class, 'Companies'])->name('user.companies');
 Route::get('/companies/{id}', [HomeController::class, 'CompanyProfile'])->name('company.profile');
+
+// ============================================================
+// Installation ROUTES (WEB)
+// ============================================================
+
+Route::prefix('install')->name('install.')->group(function () {
+    Route::get('/', [InstallController::class, 'welcome'])->name('welcome');
+    Route::get('/requirements', [InstallController::class, 'requirements'])->name('requirements');
+    Route::get('/database', [InstallController::class, 'databaseForm'])->name('database');
+    Route::post('/database', [InstallController::class, 'databaseSave'])->name('database.save');
+    Route::get('/app-config', [InstallController::class, 'appConfigForm'])->name('app-config');
+    Route::post('/app-config', [InstallController::class, 'appConfigSave'])->name('app-config.save');
+    Route::get('/super-admin', [InstallController::class, 'superAdminForm'])->name('super-admin');
+    Route::post('/super-admin', [InstallController::class, 'superAdminSave'])->name('super-admin.save');
+    Route::get('/site-settings', [InstallController::class, 'siteSettingsForm'])->name('site-settings');
+    Route::post('/site-settings', [InstallController::class, 'siteSettingsSave'])->name('site-settings.save');
+    Route::get('/finalize', [InstallController::class, 'finalize'])->name('finalize');
+    Route::get('/complete', [InstallController::class, 'complete'])->name('complete');
+});
 
 // ============================================================
 // AUTH ROUTES (WEB)
@@ -345,3 +365,4 @@ Route::post('/zoom/meeting', [ZoomController::class, 'create']);
 Route::patch('/zoom/meeting/{id}', [ZoomController::class, 'update']);
 Route::delete('/zoom/meeting/{id}', [ZoomController::class, 'delete']);
 Route::get('/zoom/meetings', [ZoomController::class, 'list']);
+

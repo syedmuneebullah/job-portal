@@ -5,11 +5,12 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\CheckUserType;
 use App\Http\Middleware\CheckUserStatus;
+use App\Http\Middleware\RedirectIfNotInstalled;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
-        api: __DIR__.'/../routes/api.php',  // <<< Ye add karo
+        api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
@@ -34,6 +35,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Web middleware group
         $middleware->group('web', [
+            // ✅ Installation check — sabse pehle
+            \App\Http\Middleware\RedirectIfNotInstalled::class,
+
             \Illuminate\Cookie\Middleware\EncryptCookies::class,
             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
             \Illuminate\Session\Middleware\StartSession::class,
@@ -59,6 +63,9 @@ return Application::configure(basePath: dirname(__DIR__))
             // Custom middleware aliases
             'user.type' => CheckUserType::class,
             'user.status' => CheckUserStatus::class,
+
+            // Installation middleware (agar alag se bhi use karna ho)
+            'installed' => \App\Http\Middleware\RedirectIfNotInstalled::class,
         ]);
 
         // Priority middleware
