@@ -37,10 +37,69 @@ class HomeController extends Controller
         return view('user.pages.landing');
     }
 
-    public function JobListings()
-    {
-        return view('user.pages.jobs.listings');
+    public function JobListings(Request $request)
+{
+    $query = JobPost::with(['employer' => function ($q) {
+        $q->select('id', 'company_name', 'company_logo', 'industry');
+    }])
+    ->where('status', 'published')
+    ->whereNull('deleted_at');
+
+    // Search: title, description, or company name
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function ($q) use ($search) {
+            $q->where('title', 'like', "%{$search}%")
+              ->orWhere('description', 'like', "%{$search}%")
+              ->orWhereHas('employer', function ($eq) use ($search) {
+                  $eq->where('company_name', 'like', "%{$search}%");
+              });
+        });
     }
+
+    // Location filter
+    if ($request->filled('location')) {
+        $query->where('location', 'like', '%' . $request->location . '%');
+    }
+
+    // Category / industry filter
+    if ($request->filled('category')) {
+        $query->whereHas('employer', function ($eq) use ($request) {
+            $eq->where('industry', $request->category);
+        });
+    }
+
+    // Employment type (Full-time, Part-time, Contract, Internship)
+    if ($request->filled('employment_type')) {
+        $query->where('employment_type', $request->employment_type);
+    }
+
+    // Work type (Remote, Hybrid, On-site)
+    if ($request->filled('work_type')) {
+        $query->where('work_type', $request->work_type);
+    }
+
+    // Sorting
+    $sort = $request->get('sort', 'recent');
+    switch ($sort) {
+        case 'salary':
+            $query->orderBy('salary_max', 'desc');
+            break;
+        case 'relevant':
+            $query->orderBy('created_at', 'desc'); // adjust with relevance logic if needed
+            break;
+        case 'applied':
+            $query->withCount('applications')->orderBy('applications_count', 'desc');
+            break;
+        default:
+            $query->orderBy('created_at', 'desc');
+    }
+
+    $jobs = $query->paginate(10)->withQueryString();
+    $totalJobs = $jobs->total();
+
+    return view('user.pages.jobs.listings', compact('jobs', 'totalJobs'));
+}
 
     public function JobDetails($id)
     {
