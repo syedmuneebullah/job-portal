@@ -35,6 +35,9 @@ class JobPost extends Model
         'closing_at',
         'max_applications',
         'application_questions',
+        'screening_enabled',
+        'screening_weights',
+        'knockout_rules',
     ];
 
     protected $casts = [
@@ -47,6 +50,9 @@ class JobPost extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
+        'screening_weights' => 'array',
+        'knockout_rules'    => 'array',
+        'screening_enabled' => 'boolean',
     ];
 
     // Relationships
@@ -157,4 +163,71 @@ class JobPost extends Model
     {
         return $this->savedJobs()->where('user_id', $userId)->exists();
     }
+
+    /**
+     * Default weights when no custom weights set.
+     */
+    public function getEffectiveWeightsAttribute(): array
+    {
+        return $this->screening_weights ?? [
+            'skills'     => 35,
+            'experience' => 25,
+            'education'  => 15,
+            'location'   => 10,
+            'salary'     => 10,
+            'answers'    => 5,
+        ];
+    }
+
+    /**
+     * Applications ordered by screening score (best first).
+     */
+    public function screenedApplications()
+    {
+        return $this->hasMany(Application::class)
+            ->orderByDesc('screening_score')
+            ->orderByDesc('created_at');
+    }
+
+    /**
+     * Only strong/good matches.
+     */
+    public function topApplications($minScore = 60)
+    {
+        return $this->hasMany(Application::class)
+            ->where('screening_score', '>=', $minScore)
+            ->where('auto_knocked_out', false)
+            ->orderByDesc('screening_score');
+    }
+
+    /**
+ * Count of applications with strong/good screening scores.
+ */
+public function getStrongMatchCountAttribute(): int
+{
+    return $this->applications()
+        ->where('auto_knocked_out', false)
+        ->whereIn('screening_band', ['strong', 'good'])
+        ->count();
+}
+
+/**
+ * Count of auto-knocked-out applications.
+ */
+public function getKnockedOutCountAttribute(): int
+{
+    return $this->applications()
+        ->where('auto_knocked_out', true)
+        ->count();
+}
+
+/**
+ * Has this job been screened at least once?
+ */
+public function getHasScreeningDataAttribute(): bool
+{
+    return $this->applications()
+        ->whereNotNull('screened_at')
+        ->exists();
+}
 }

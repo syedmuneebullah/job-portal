@@ -97,7 +97,7 @@
                             >
                             <label for="remember" class="ml-2 text-sm text-gray-600">Remember me</label>
                         </div>
-                        <a href="#" class="text-sm text-[#FF7543] hover:underline font-medium">
+                        <a href="{{ route('auth.password.request') }}" class="text-sm text-[#FF7543] hover:underline font-medium">
                             Forgot password?
                         </a>
                     </div>

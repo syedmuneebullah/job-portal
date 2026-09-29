@@ -102,27 +102,43 @@ class HomeController extends Controller
 }
 
     public function JobDetails($id)
-    {
-       $job = JobPost::with(['employer', 'questions'])
-            ->where('status', 'published')
-            ->whereNull('deleted_at')
-            ->findOrFail($id);
+{
+    $job = JobPost::with(['employer', 'questions'])
+        ->where('status', 'published')
+        ->whereNull('deleted_at')
+        ->findOrFail($id);
 
-        // Get similar jobs (based on category or location)
-        $similarJobs = JobPost::with(['employer'])
-            ->where('status', 'published')
-            ->whereNull('deleted_at')
-            ->where('id', '!=', $job->id)
-            ->where(function($query) use ($job) {
-                $query->where('location', $job->location)
-                      ->orWhere('work_type', $job->work_type)
-                      ->orWhere('employment_type', $job->employment_type);
-            })
-            ->take(3)
-            ->get();
+    // Similar jobs
+    $similarJobs = JobPost::with(['employer'])
+        ->where('status', 'published')
+        ->whereNull('deleted_at')
+        ->where('id', '!=', $job->id)
+        ->where(function ($query) use ($job) {
+            $query->where('location', $job->location)
+                  ->orWhere('work_type', $job->work_type)
+                  ->orWhere('employment_type', $job->employment_type);
+        })
+        ->take(3)
+        ->get();
 
-        return view('user.pages.jobs.job-details', compact('job', 'similarJobs'));
+    // Has the current user already applied?
+    $hasApplied = false;
+    if (auth()->check()) {
+        $hasApplied = \App\Models\Application::where('applicant_id', auth()->id())
+            ->where('job_post_id', $job->id)
+            ->exists();
     }
+
+    // Is the job saved by the current user?
+    $isSaved = false;
+    if (auth()->check()) {
+        $isSaved = \App\Models\SavedJob::where('user_id', auth()->id())
+            ->where('job_post_id', $job->id)
+            ->exists();
+    }
+
+    return view('user.pages.jobs.job-details', compact('job', 'similarJobs', 'hasApplied', 'isSaved'));
+}
 
     public function About()
     {
@@ -334,33 +350,71 @@ class HomeController extends Controller
     }
 
     public function Companies(Request $request)
-    {
-        $query = Employer::query();
+{
+    $query = Employer::query();
 
-        if ($request->filled('search')) {
-            $query->where(function ($q) use ($request) {
-                $q->where('company_name', 'like', '%' . $request->search . '%')
-                ->orWhere('industry', 'like', '%' . $request->search . '%')
-                ->orWhere('headquarters', 'like', '%' . $request->search . '%');
-            });
-        }
-
-        if ($request->filled('industry')) {
-            $query->where('industry', $request->industry);
-        }
-
-        if ($request->filled('location')) {
-            $query->where('headquarters', 'like', '%' . $request->location . '%');
-        }
-
-        if ($request->filled('verified')) {
-            $query->where('verification_status', 'verified');
-        }
-
-        $companies = $query->latest()->paginate(12)->withQueryString();
-
-        return view('user.pages.companies', compact('companies'));
+    // Search: company name, industry, or headquarters
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function ($q) use ($search) {
+            $q->where('company_name', 'like', "%{$search}%")
+              ->orWhere('industry', 'like', "%{$search}%")
+              ->orWhere('headquarters', 'like', "%{$search}%");
+        });
     }
+
+    // Industry filter
+    if ($request->filled('industry')) {
+        $query->where('industry', $request->industry);
+    }
+
+    // Location filter
+    if ($request->filled('location')) {
+        $query->where('headquarters', 'like', '%' . $request->location . '%');
+    }
+
+    // Verified filter
+    if ($request->filled('verified')) {
+        $query->where('verification_status', 'verified');
+    }
+
+    // Hiring Now: employers with at least one published job
+    if ($request->filled('hiring')) {
+        $query->whereHas('jobPosts', function ($q) {
+            $q->where('status', 'published')->whereNull('deleted_at');
+        });
+    }
+
+    // Remote Friendly: employers with at least one remote job
+    if ($request->filled('remote')) {
+        $query->whereHas('jobPosts', function ($q) {
+            $q->where('status', 'published')
+              ->whereNull('deleted_at')
+              ->where('work_type', 'Remote');
+        });
+    }
+
+    // Sorting
+    switch ($request->get('sort', 'recent')) {
+        case 'name':
+            $query->orderBy('company_name', 'asc');
+            break;
+        case 'size':
+            $query->orderBy('company_size', 'desc');
+            break;
+        case 'jobs':
+            $query->withCount(['jobPosts' => function ($q) {
+                $q->where('status', 'published')->whereNull('deleted_at');
+            }])->orderBy('job_posts_count', 'desc');
+            break;
+        default:
+            $query->latest();
+    }
+
+    $companies = $query->paginate(12)->withQueryString();
+
+    return view('user.pages.companies', compact('companies'));
+}
 
     /**
      * Show a single company's full profile and its active job listings.
