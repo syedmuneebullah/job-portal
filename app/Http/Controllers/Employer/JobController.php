@@ -1105,59 +1105,61 @@ class JobController extends Controller
         return view('employer.pages.applications.job', compact('applications', 'stats', 'jobPost'));
     }
 
-    /**
-     * Show a single application detail
-     */
     public function showApplication($applicationId)
-    {
-        // Get the authenticated user ID
-        $authUserId = auth()->id();
-        $employer = Employer::where('user_id', $authUserId)->first();
+{
+    $authUserId = auth()->id();
+    $employer = Employer::where('user_id', $authUserId)->first();
 
-        if (!$employer) {
-            if (request()->ajax() || request()->wantsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Employer not found'
-                ], 404);
-            }
-            abort(404, 'Employer not found');
-        }
-
-        $application = Application::with([
-            'applicant' => function($q) {
-                $q->select('id', 'first_name', 'last_name', 'email', 'phone');
-            },
-            'jobPost' => function($q) {
-                $q->select('id', 'title', 'department', 'description', 'requirements', 'work_type', 'employment_type', 'salary_min', 'salary_max', 'currency');
-            },
-            'applicant.resume'
-        ])
-        ->where('id', $applicationId)
-        ->whereHas('jobPost', function($q) use ($employer) {
-            $q->where('employer_id', $employer->id);
-        })
-        ->first();
-
-        if (!$application) {
-            if (request()->ajax() || request()->wantsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Application not found or does not belong to you'
-                ], 404);
-            }
-            abort(404, 'Application not found');
-        }
-
+    if (!$employer) {
         if (request()->ajax() || request()->wantsJson()) {
             return response()->json([
-                'success' => true,
-                'data' => $application
-            ]);
+                'success' => false,
+                'message' => 'Employer not found'
+            ], 404);
         }
-
-        return view('employer.pages.applications.show', compact('application'));
+        abort(404, 'Employer not found');
     }
+
+    $application = Application::with([
+        'applicant' => function($q) {
+            $q->select('id', 'first_name', 'last_name', 'email', 'phone');
+        },
+        'jobPost' => function($q) {
+            $q->select('id', 'title', 'department', 'description', 'requirements', 'work_type', 'employment_type', 'salary_min', 'salary_max', 'currency', 'location', 'created_at');
+        },
+        'jobPost.questions' => function($q) {
+            // Order by 'order' column then id — jis order mein apply form mein the
+            $q->select('id', 'job_post_id', 'question', 'type', 'options', 'required', 'order')
+              ->orderBy('order', 'asc')
+              ->orderBy('id', 'asc');
+        },
+        'applicant.resume'
+    ])
+    ->where('id', $applicationId)
+    ->whereHas('jobPost', function($q) use ($employer) {
+        $q->where('employer_id', $employer->id);
+    })
+    ->first();
+
+    if (!$application) {
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Application not found or does not belong to you'
+            ], 404);
+        }
+        abort(404, 'Application not found');
+    }
+
+    if (request()->ajax() || request()->wantsJson()) {
+        return response()->json([
+            'success' => true,
+            'data' => $application
+        ]);
+    }
+
+    return view('employer.pages.applications.show', compact('application'));
+}
 
     /**
      * Update application status

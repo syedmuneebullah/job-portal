@@ -446,7 +446,96 @@
                 </div>
             </div>
             <div class="w-full sm:w-auto">
-                {{ $jobs->withQueryString()->links() }}
+               @if($jobs->hasPages())
+    <div class="flex items-center justify-between gap-2 flex-wrap">
+
+        {{-- Previous --}}
+        @if($jobs->onFirstPage())
+            <button disabled
+                    class="inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold text-gray-400 bg-gray-100 border border-gray-200 rounded-lg cursor-not-allowed">
+                <i class="fas fa-chevron-left text-[10px]"></i>
+                Previous
+            </button>
+        @else
+            <a href="{{ $jobs->previousPageUrl() }}"
+               class="inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:border-[#ff7543] hover:text-[#ff7543] hover:bg-[#fef2f0] transition-all">
+                <i class="fas fa-chevron-left text-[10px]"></i>
+                Previous
+            </a>
+        @endif
+
+        {{-- Page Numbers (Smart Truncation) --}}
+        <div class="flex items-center gap-1 flex-wrap">
+            @php
+                $current = $jobs->currentPage();
+                $last = $jobs->lastPage();
+                $window = 2; // current page ke aage peeche kitne pages dikhayein
+
+                // Pages ka range banao
+                $pages = [];
+
+                // Always show first page
+                $pages[] = 1;
+
+                // Middle pages
+                $start = max(2, $current - $window);
+                $end = min($last - 1, $current + $window);
+
+                if ($start > 2) {
+                    $pages[] = '...';
+                }
+
+                for ($i = $start; $i <= $end; $i++) {
+                    $pages[] = $i;
+                }
+
+                if ($end < $last - 1) {
+                    $pages[] = '...';
+                }
+
+                // Always show last page
+                if ($last > 1) {
+                    $pages[] = $last;
+                }
+
+                $urls = $jobs->getUrlRange(1, $last);
+            @endphp
+
+            @foreach($pages as $page)
+                @if($page === '...')
+                    <span class="inline-flex items-center justify-center w-8 h-8 text-xs font-bold text-gray-400">
+                        …
+                    </span>
+                @elseif($page == $current)
+                    <span class="inline-flex items-center justify-center w-8 h-8 text-xs font-bold text-white bg-[#ff7543] border border-[#ff7543] rounded-lg shadow-sm">
+                        {{ $page }}
+                    </span>
+                @else
+                    <a href="{{ $urls[$page] }}"
+                       class="inline-flex items-center justify-center w-8 h-8 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:border-[#ff7543] hover:text-[#ff7543] hover:bg-[#fef2f0] transition-all">
+                        {{ $page }}
+                    </a>
+                @endif
+            @endforeach
+        </div>
+
+        {{-- Next --}}
+        @if($jobs->hasMorePages())
+            <a href="{{ $jobs->nextPageUrl() }}"
+               class="inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:border-[#ff7543] hover:text-[#ff7543] hover:bg-[#fef2f0] transition-all">
+                Next
+                <i class="fas fa-chevron-right text-[10px]"></i>
+            </a>
+        @else
+            <button disabled
+                    class="inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold text-gray-400 bg-gray-100 border border-gray-200 rounded-lg cursor-not-allowed">
+                Next
+                <i class="fas fa-chevron-right text-[10px]"></i>
+            </button>
+        @endif
+
+    </div>
+@endif
             </div>
         </div>
     </div>

@@ -372,7 +372,7 @@
             <!-- View All Jobs Button -->
             @if($featuredJobs->count() > 0 && $totalJobs > 6)
                 <div class="text-center mt-10 md:mt-12">
-                    <a href="{{ route('user.jobs.all') }}" 
+                    <a href="{{ route('user.job.listings') }}" 
                     class="inline-flex items-center gap-2 px-8 py-3.5 bg-[#1A237E] hover:bg-[#0D1445] text-white font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-[#1A237E]/20 hover:shadow-xl hover:shadow-[#1A237E]/30 hover:-translate-y-0.5">
                         <span>View All Jobs ({{ $totalJobs }})</span>
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">

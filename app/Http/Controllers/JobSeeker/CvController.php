@@ -436,15 +436,6 @@ private function convertToPDFFriendlyHTML($html)
                                 $html .= '<span class="period-pdf" style="font-size:10px;color:#999;">' . htmlspecialchars($exp['period'] ?? '') . '</span>';
                                 $html .= '</div>';
                                 $html .= '<div class="company-pdf" style="font-size:11px;color:#666;margin:2px 0 5px;">' . htmlspecialchars($exp['company'] ?? '') . '</div>';
-                                if (!empty($exp['responsibilities'])) {
-                                    $html .= '<ul style="padding-left:18px;margin:3px 0;">';
-                                    foreach ($exp['responsibilities'] as $resp) {
-                                        if (!empty($resp)) {
-                                            $html .= '<li style="font-size:11px;line-height:1.5;">' . htmlspecialchars($resp) . '</li>';
-                                        }
-                                    }
-                                    $html .= '</ul>';
-                                }
                                 $html .= '</div>';
                                 return $html;
                             }, $data['experience'])) . '
@@ -592,7 +583,7 @@ private function extractDataFromHTML($html)
                 $exp['company'] = trim($match[1]);
             }
             if (preg_match_all('/<li>(.*?)<\/li>/', $expHtml, $respMatches)) {
-                $exp['responsibilities'] = array_map('trim', $respMatches[1]);
+                $exp['description'] = array_map('trim', $respMatches[1]);
             }
             $data['experience'][] = $exp;
         }
@@ -765,10 +756,7 @@ private function extractDataFromHTML($html)
                 ];
             })->toArray(),
             'experience' => $user->experiences->map(function($exp) {
-                $responsibilities = [];
-                if (!empty($exp->description)) {
-                    $responsibilities = array_filter(array_map('trim', explode("\n", $exp->description)));
-                }
+                
                 return [
                     'company' => $exp->company_name ?? '',
                     'title' => $exp->job_title ?? '',
@@ -777,7 +765,6 @@ private function extractDataFromHTML($html)
                     'end_date' => $exp->end_date ? $exp->end_date->format('Y-m-d') : null,
                     'on_going' => $exp->on_going === 'yes',
                     'description' => $exp->description ?? '',
-                    'responsibilities' => $responsibilities,
                     'location' => $exp->city ?? $exp->state ?? $exp->country ?? '',
                 ];
             })->toArray(),

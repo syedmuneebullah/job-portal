@@ -208,7 +208,8 @@
                             Application Questions
                         </h3>
                         <div class="space-y-4">
-                            @foreach($job->questions as $index => $question)
+                            @foreach($job->questions as $question)
+                                @php $qid = $question->id; @endphp
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">
                                         {{ $question->question }}
@@ -216,69 +217,75 @@
                                             <span class="text-red-500">*</span>
                                         @endif
                                     </label>
+
                                     @if($question->type === 'text')
-                                        <input type="text" name="answers[{{ $index }}]" 
-                                               value="{{ old('answers.'.$index) }}"
-                                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff7543] focus:border-transparent outline-none transition-all @error('answers.'.$index) border-red-500 @enderror"
-                                               placeholder="Your answer..."
-                                               {{ $question->required ? 'required' : '' }}>
+                                        <input type="text" name="answers[{{ $qid }}]"
+                                            value="{{ old('answers.'.$qid) }}"
+                                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff7543] focus:border-transparent outline-none transition-all @error('answers.'.$qid) border-red-500 @enderror"
+                                            placeholder="Your answer..."
+                                            {{ $question->required ? 'required' : '' }}>
+
                                     @elseif($question->type === 'textarea')
-                                        <textarea name="answers[{{ $index }}]" rows="3"
-                                                  class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff7543] focus:border-transparent outline-none transition-all @error('answers.'.$index) border-red-500 @enderror"
-                                                  placeholder="Your answer..."
-                                                  {{ $question->required ? 'required' : '' }}>{{ old('answers.'.$index) }}</textarea>
+                                        <textarea name="answers[{{ $qid }}]" rows="3"
+                                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff7543] focus:border-transparent outline-none transition-all @error('answers.'.$qid) border-red-500 @enderror"
+                                                placeholder="Your answer..."
+                                                {{ $question->required ? 'required' : '' }}>{{ old('answers.'.$qid) }}</textarea>
+
                                     @elseif($question->type === 'select')
-                                        <select name="answers[{{ $index }}]" 
-                                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff7543] focus:border-transparent outline-none transition-all @error('answers.'.$index) border-red-500 @enderror"
+                                        <select name="answers[{{ $qid }}]"
+                                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff7543] focus:border-transparent outline-none transition-all @error('answers.'.$qid) border-red-500 @enderror"
                                                 {{ $question->required ? 'required' : '' }}>
                                             <option value="">Select an option</option>
                                             @php
-                                                $options = is_array($question->options) 
-                                                    ? $question->options 
+                                                $options = is_array($question->options)
+                                                    ? $question->options
                                                     : (is_string($question->options) ? json_decode($question->options, true) ?? [] : []);
                                             @endphp
                                             @foreach($options as $option)
-                                                <option value="{{ $option }}" {{ old('answers.'.$index) == $option ? 'selected' : '' }}>
+                                                <option value="{{ $option }}" {{ old('answers.'.$qid) == $option ? 'selected' : '' }}>
                                                     {{ $option }}
                                                 </option>
                                             @endforeach
                                         </select>
+
                                     @elseif($question->type === 'checkbox')
                                         <div class="space-y-2">
                                             @php
-                                                $options = is_array($question->options) 
-                                                    ? $question->options 
+                                                $options = is_array($question->options)
+                                                    ? $question->options
                                                     : (is_string($question->options) ? json_decode($question->options, true) ?? [] : []);
-                                                $oldValues = old('answers.'.$index, []);
+                                                $oldValues = old('answers.'.$qid, []);
                                             @endphp
                                             @foreach($options as $option)
                                                 <label class="flex items-center gap-2 cursor-pointer">
-                                                    <input type="checkbox" name="answers[{{ $index }}][]" value="{{ $option }}"
-                                                           class="rounded border-gray-300 text-[#ff7543] focus:ring-[#ff7543]"
-                                                           {{ in_array($option, (array)$oldValues) ? 'checked' : '' }}>
+                                                    <input type="checkbox" name="answers[{{ $qid }}][]" value="{{ $option }}"
+                                                        class="rounded border-gray-300 text-[#ff7543] focus:ring-[#ff7543]"
+                                                        {{ in_array($option, (array)$oldValues) ? 'checked' : '' }}>
                                                     <span class="text-sm text-gray-700">{{ $option }}</span>
                                                 </label>
                                             @endforeach
                                         </div>
+
                                     @elseif($question->type === 'radio')
                                         <div class="space-y-2">
                                             @php
-                                                $options = is_array($question->options) 
-                                                    ? $question->options 
+                                                $options = is_array($question->options)
+                                                    ? $question->options
                                                     : (is_string($question->options) ? json_decode($question->options, true) ?? [] : []);
                                             @endphp
                                             @foreach($options as $option)
                                                 <label class="flex items-center gap-2 cursor-pointer">
-                                                    <input type="radio" name="answers[{{ $index }}]" value="{{ $option }}"
-                                                           class="border-gray-300 text-[#ff7543] focus:ring-[#ff7543]"
-                                                           {{ old('answers.'.$index) == $option ? 'checked' : '' }}
-                                                           {{ $question->required ? 'required' : '' }}>
+                                                    <input type="radio" name="answers[{{ $qid }}]" value="{{ $option }}"
+                                                        class="border-gray-300 text-[#ff7543] focus:ring-[#ff7543]"
+                                                        {{ old('answers.'.$qid) == $option ? 'checked' : '' }}
+                                                        {{ $question->required ? 'required' : '' }}>
                                                     <span class="text-sm text-gray-700">{{ $option }}</span>
                                                 </label>
                                             @endforeach
                                         </div>
                                     @endif
-                                    @error('answers.'.$index)
+
+                                    @error('answers.'.$qid)
                                         <p class="mt-1 text-sm text-red-500">{{ $message }}</p>
                                     @enderror
                                 </div>

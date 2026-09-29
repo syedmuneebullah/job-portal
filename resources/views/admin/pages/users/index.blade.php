@@ -367,7 +367,57 @@
                     of <span class="font-medium text-gray-700">{{ $users->total() }}</span> results
                 </p>
             </div>
-            {{ $users->withQueryString()->links() }}
+            @if($users->hasPages())
+                <div class="flex items-center justify-between gap-2 flex-wrap">
+
+                    {{-- Previous --}}
+                    @if($users->onFirstPage())
+                        <button disabled
+                                class="inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold text-gray-400 bg-gray-100 border border-gray-200 rounded-lg cursor-not-allowed">
+                            <i class="fas fa-chevron-left text-[10px]"></i>
+                            Previous
+                        </button>
+                    @else
+                        <a href="{{ $users->previousPageUrl() }}"
+                        class="inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:border-[#ff7543] hover:text-[#ff7543] hover:bg-[#fef2f0] transition-all">
+                            <i class="fas fa-chevron-left text-[10px]"></i>
+                            Previous
+                        </a>
+                    @endif
+
+                    {{-- Page Numbers --}}
+                    <div class="flex items-center gap-1 flex-wrap">
+                        @foreach ($users->getUrlRange(1, $users->lastPage()) as $page => $url)
+                            @if ($page == $users->currentPage())
+                                <span class="inline-flex items-center justify-center w-8 h-8 text-xs font-bold text-white bg-[#ff7543] border border-[#ff7543] rounded-lg shadow-sm">
+                                    {{ $page }}
+                                </span>
+                            @else
+                                <a href="{{ $url }}"
+                                class="inline-flex items-center justify-center w-8 h-8 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:border-[#ff7543] hover:text-[#ff7543] hover:bg-[#fef2f0] transition-all">
+                                    {{ $page }}
+                                </a>
+                            @endif
+                        @endforeach
+                    </div>
+
+                    {{-- Next --}}
+                    @if($users->hasMorePages())
+                        <a href="{{ $users->nextPageUrl() }}"
+                        class="inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:border-[#ff7543] hover:text-[#ff7543] hover:bg-[#fef2f0] transition-all">
+                            Next
+                            <i class="fas fa-chevron-right text-[10px]"></i>
+                        </a>
+                    @else
+                        <button disabled
+                                class="inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold text-gray-400 bg-gray-100 border border-gray-200 rounded-lg cursor-not-allowed">
+                            Next
+                            <i class="fas fa-chevron-right text-[10px]"></i>
+                        </button>
+                    @endif
+
+                </div>
+            @endif
         </div>
     </div>
 </div>
