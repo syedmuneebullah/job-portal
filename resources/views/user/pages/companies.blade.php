@@ -22,27 +22,25 @@
         </div>
 
         <!-- ===== FILTERS BAR ===== -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100/80 p-4 md:p-5 mb-6">
+        <form method="GET" action="{{ route('user.companies') }}" class="bg-white rounded-2xl shadow-sm border border-gray-100/80 p-4 md:p-5 mb-6">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 <!-- Search Input -->
                 <div class="relative lg:col-span-2">
                     <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                    <input type="text" placeholder="Search companies, industries, or keywords..."
-                           class="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 focus:border-[#ff7543] focus:ring-2 focus:ring-[#ff7543]/20 outline-none transition-all text-sm">
+                    <input type="text" name="search" value="{{ request('search') }}"
+                        placeholder="Search companies, industries, or keywords..."
+                        class="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 focus:border-[#ff7543] focus:ring-2 focus:ring-[#ff7543]/20 outline-none transition-all text-sm">
                 </div>
 
                 <!-- Industry -->
                 <div class="relative">
                     <i class="fas fa-building absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                    <select class="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 focus:border-[#ff7543] focus:ring-2 focus:ring-[#ff7543]/20 outline-none transition-all text-sm appearance-none cursor-pointer bg-white">
+                    <select name="industry"
+                            class="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 focus:border-[#ff7543] focus:ring-2 focus:ring-[#ff7543]/20 outline-none transition-all text-sm appearance-none cursor-pointer bg-white">
                         <option value="">All Industries</option>
-                        <option>Technology</option>
-                        <option>Design</option>
-                        <option>Finance</option>
-                        <option>Marketing</option>
-                        <option>Healthcare</option>
-                        <option>Education</option>
-                        <option>Engineering</option>
+                        @foreach(['Technology', 'Design', 'Finance', 'Marketing', 'Healthcare', 'Education', 'Engineering'] as $industry)
+                            <option value="{{ $industry }}" @selected(request('industry') == $industry)>{{ $industry }}</option>
+                        @endforeach
                     </select>
                     <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
                 </div>
@@ -50,44 +48,61 @@
                 <!-- Location -->
                 <div class="relative">
                     <i class="fas fa-map-marker-alt absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                    <select class="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 focus:border-[#ff7543] focus:ring-2 focus:ring-[#ff7543]/20 outline-none transition-all text-sm appearance-none cursor-pointer bg-white">
+                    <select name="location"
+                            class="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 focus:border-[#ff7543] focus:ring-2 focus:ring-[#ff7543]/20 outline-none transition-all text-sm appearance-none cursor-pointer bg-white">
                         <option value="">All Locations</option>
-                        <option>Kuala Lumpur</option>
-                        <option>Selangor</option>
-                        <option>Penang</option>
-                        <option>Johor</option>
-                        <option>Sarawak</option>
-                        <option>Sabah</option>
-                        <option>Remote</option>
+                        @foreach(['Kuala Lumpur', 'Selangor', 'Penang', 'Johor', 'Sarawak', 'Sabah', 'Remote'] as $loc)
+                            <option value="{{ $loc }}" @selected(request('location') == $loc)>{{ $loc }}</option>
+                        @endforeach
                     </select>
                     <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
                 </div>
             </div>
 
-            <!-- Filter Chips -->
+            <!-- Filter Chips + Submit -->
             <div class="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-gray-100">
-                <span class="text-xs font-medium text-gray-500 mr-1">Quick filters:</span>
-                <button class="text-xs px-3 py-1.5 rounded-full bg-[#1A237E] text-white transition-all hover:bg-[#0D1445]">All Companies</button>
-                <button class="text-xs px-3 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-[#1A237E] transition-all border border-transparent hover:border-[#1A237E]/20">Verified</button>
-                <button class="text-xs px-3 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-[#1A237E] transition-all border border-transparent hover:border-[#1A237E]/20">Hiring Now</button>
-                <button class="text-xs px-3 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-[#1A237E] transition-all border border-transparent hover:border-[#1A237E]/20">Remote Friendly</button>
-                <button class="text-xs px-3 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-[#1A237E] transition-all border border-transparent hover:border-[#1A237E]/20 flex items-center gap-1">
-                    <i class="fas fa-sliders-h text-[10px]"></i>
-                    More filters
+                <button type="submit"
+                        class="text-xs px-4 py-1.5 rounded-full bg-[#ff7543] text-white hover:bg-[#e5643a] transition-all font-semibold">
+                    <i class="fas fa-search mr-1"></i> Search
                 </button>
+
+                <span class="text-xs font-medium text-gray-500 mr-1 ml-2">Quick filters:</span>
+
+                <a href="{{ route('user.companies') }}"
+                class="text-xs px-3 py-1.5 rounded-full transition-all {{ !request()->hasAny(['verified','hiring','remote']) ? 'bg-[#1A237E] text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-[#1A237E] border border-transparent hover:border-[#1A237E]/20' }}">
+                    All Companies
+                </a>
+                <a href="{{ route('user.companies', array_merge(request()->except('verified', 'page'), ['verified' => 1])) }}"
+                class="text-xs px-3 py-1.5 rounded-full transition-all {{ request('verified') ? 'bg-[#1A237E] text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-[#1A237E] border border-transparent hover:border-[#1A237E]/20' }}">
+                    Verified
+                </a>
+                <a href="{{ route('user.companies', array_merge(request()->except('hiring', 'page'), ['hiring' => 1])) }}"
+                class="text-xs px-3 py-1.5 rounded-full transition-all {{ request('hiring') ? 'bg-[#1A237E] text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-[#1A237E] border border-transparent hover:border-[#1A237E]/20' }}">
+                    Hiring Now
+                </a>
+                <a href="{{ route('user.companies', array_merge(request()->except('remote', 'page'), ['remote' => 1])) }}"
+                class="text-xs px-3 py-1.5 rounded-full transition-all {{ request('remote') ? 'bg-[#1A237E] text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-[#1A237E] border border-transparent hover:border-[#1A237E]/20' }}">
+                    Remote Friendly
+                </a>
             </div>
-        </div>
+        </form>
 
         <!-- ===== SORT & VIEW OPTIONS ===== -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
             <div class="flex flex-wrap items-center gap-2">
                 <span class="text-sm text-gray-500">Sort by:</span>
-                <select class="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:border-[#ff7543] focus:ring-2 focus:ring-[#ff7543]/20 outline-none">
-                    <option>Most Recent</option>
-                    <option>Company Size</option>
-                    <option>Most Jobs</option>
-                    <option>Alphabetical</option>
-                </select>
+                <form method="GET" action="{{ route('user.companies') }}">
+    @foreach(request()->except('sort', 'page') as $key => $value)
+        <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+    @endforeach
+    <select name="sort" onchange="this.form.submit()"
+            class="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:border-[#ff7543] focus:ring-2 focus:ring-[#ff7543]/20 outline-none">
+        <option value="recent" @selected(request('sort') == 'recent')>Most Recent</option>
+        <option value="size" @selected(request('sort') == 'size')>Company Size</option>
+        <option value="jobs" @selected(request('sort') == 'jobs')>Most Jobs</option>
+        <option value="name" @selected(request('sort') == 'name')>Alphabetical</option>
+    </select>
+</form>
             </div>
             <div class="flex items-center gap-2">
                 <!-- List View Button (inactive) -->

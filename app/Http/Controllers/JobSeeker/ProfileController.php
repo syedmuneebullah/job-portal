@@ -5,12 +5,14 @@ namespace App\Http\Controllers\JobSeeker;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use App\Models\User;
 use App\Models\ApplicantEducation;
 use App\Models\ApplicantExperience;
 use App\Models\ApplicantCertificate;
 use App\Models\ApplicantProfile;
+use Illuminate\Validation\Rules\Password; 
 
 class ProfileController extends Controller
 {
@@ -421,4 +423,75 @@ class ProfileController extends Controller
             ], 422);
         }
     }
+
+
+    /**
+ * Show the change password page.
+ */
+public function showChangePassword()
+{
+    $user = User::find(Auth::id());
+
+    return view('jobseeker.pages.change-password', compact('user'));
+}
+
+/**
+ * Update the user's password.
+ */
+public function updatePassword(Request $request)
+{
+    $user = User::find(Auth::id());
+
+    $validated = $request->validate([
+        'current_password' => ['required', 'string'],
+        'password' => [
+            'required',
+            'string',
+            'confirmed',
+            Password::min(8)
+                ->letters()
+                ->mixedCase()
+                ->numbers()
+                ->symbols(),
+        ],
+    ], [
+        'current_password.required' => 'Please enter your current password.',
+        'password.required'         => 'Please enter a new password.',
+        'password.confirmed'        => 'The password confirmation does not match.',
+        'password.min'              => 'Password must be at least 8 characters.',
+    ]);
+
+    // Verify current password matches
+    if (!Hash::check($validated['current_password'], $user->password)) {
+        return back()
+            ->withErrors(['current_password' => 'Your current password is incorrect.'])
+            ->withInput();
+    }
+
+    // Prevent reusing the same password
+    if (Hash::check($validated['password'], $user->password)) {
+        return back()
+            ->withErrors(['password' => 'New password must be different from your current password.'])
+            ->withInput();
+    }
+
+    // Update password
+    $user->update([
+        'password' => Hash::make($validated['password']),
+    ]);
+
+    // Optional: log the user out of other sessions for security
+    // Auth::logoutOtherDevices($validated['password']);
+
+    if ($request->ajax()) {
+        return response()->json([
+            'success' => true,
+            'message' => 'Password changed successfully.',
+        ]);
+    }
+
+    return redirect()
+        ->route('candidate.profile')
+        ->with('success', 'Your password has been changed successfully.');
+}
 }

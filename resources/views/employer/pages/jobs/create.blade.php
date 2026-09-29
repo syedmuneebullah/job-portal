@@ -449,6 +449,41 @@
                     </button>
                 </div>
             </div>
+
+            <!-- Screening toggles -->
+            <div class="bg-white rounded-lg border border-gray-200 p-6">
+                <h3 class="text-base font-semibold text-gray-900 mb-4">Auto-screening rules</h3>
+
+                <label class="flex items-center gap-2 mb-4">
+                    <input type="checkbox" name="screening_enabled" value="1"
+                        @checked(old('screening_enabled', $job->screening_enabled ?? true))>
+                    <span class="text-sm text-gray-700">Enable auto-screening for this job</span>
+                </label>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="text-sm font-medium text-gray-700">Min experience (years)</label>
+                        <input type="number" name="knockout_rules[min_experience_years]" min="0"
+                            value="{{ old('knockout_rules.min_experience_years', $job->knockout_rules['min_experience_years'] ?? '') }}"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-gray-700">Salary buffer (%)</label>
+                        <input type="number" name="knockout_rules[salary_buffer_percent]" min="0" max="100"
+                            value="{{ old('knockout_rules.salary_buffer_percent', $job->knockout_rules['salary_buffer_percent'] ?? 20) }}"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        <p class="text-xs text-gray-400 mt-1">Auto-reject if expected salary exceeds max by this %</p>
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-gray-700">Require correct answers</label>
+                        <label class="flex items-center gap-2 mt-2">
+                            <input type="checkbox" name="knockout_rules[require_correct_answers]" value="1"
+                                @checked(old('knockout_rules.require_correct_answers', $job->knockout_rules['require_correct_answers'] ?? false))>
+                            <span class="text-sm text-gray-600">Mandatory question wrong → auto reject</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Submit -->

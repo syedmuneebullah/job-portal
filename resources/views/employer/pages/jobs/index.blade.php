@@ -1,10 +1,28 @@
 @extends('employer.layouts.app')
 
-@section('title', 'Jobs - Admin Panel')
+@section('title', 'Jobs - Employer Panel')
 @section('page-title', 'Jobs Management')
 
 @section('content')
 <div class="space-y-6">
+
+    {{-- ===== FLASH MESSAGES ===== --}}
+    @if(session('success'))
+        <div class="mb-1 flex items-start gap-3 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800">
+            <svg class="w-5 h-5 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <p class="text-sm font-medium">{{ session('success') }}</p>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="mb-1 flex items-start gap-3 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800">
+            <svg class="w-5 h-5 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <p class="text-sm font-medium">{{ session('error') }}</p>
+        </div>
+    @endif
 
     <!-- ===== HEADER WITH STATS ===== -->
     <div class="flex flex-wrap items-center justify-between gap-4">
@@ -12,9 +30,9 @@
             <h2 class="text-lg font-semibold text-gray-900">All Jobs</h2>
             <div class="flex flex-wrap items-center gap-3 mt-1 text-sm">
                 <!-- All Jobs -->
-                <a href="{{ request()->fullUrlWithQuery(['trashed' => null]) }}"
-                   class="text-gray-600 hover:text-[#1a237e] transition-colors whitespace-nowrap {{ !request('trashed') ? 'text-[#1a237e] font-medium' : '' }}">
-                    All <span class="font-semibold {{ !request('trashed') ? 'text-[#1a237e]' : 'text-gray-900' }}">{{ $stats['total'] ?? 0 }}</span>
+                <a href="{{ request()->fullUrlWithQuery(['trashed' => null, 'screening' => null]) }}"
+                   class="text-gray-600 hover:text-[#1a237e] transition-colors whitespace-nowrap {{ !request('trashed') && !request('screening') ? 'text-[#1a237e] font-medium' : '' }}">
+                    All <span class="font-semibold {{ !request('trashed') && !request('screening') ? 'text-[#1a237e]' : 'text-gray-900' }}">{{ $stats['total'] ?? 0 }}</span>
                 </a>
                 <span class="text-gray-300">|</span>
 
@@ -46,7 +64,26 @@
                 </a>
                 <span class="text-gray-300">|</span>
 
-               
+                <!-- ✅ NEW: Has Strong Matches -->
+                <a href="{{ request()->fullUrlWithQuery(['screening' => 'strong', 'trashed' => null]) }}"
+                   class="text-gray-600 hover:text-emerald-600 transition-colors whitespace-nowrap {{ request('screening') == 'strong' ? 'text-emerald-600 font-medium' : '' }}">
+                    <span class="inline-flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        Strong Matches
+                    </span>
+                    <span class="font-semibold {{ request('screening') == 'strong' ? 'text-emerald-600' : 'text-gray-900' }}">{{ $stats['with_strong_matches'] ?? 0 }}</span>
+                </a>
+                <span class="text-gray-300">|</span>
+
+                <!-- ✅ NEW: Not Screened Yet -->
+                <a href="{{ request()->fullUrlWithQuery(['screening' => 'unscreened', 'trashed' => null]) }}"
+                   class="text-gray-600 hover:text-amber-600 transition-colors whitespace-nowrap {{ request('screening') == 'unscreened' ? 'text-amber-600 font-medium' : '' }}">
+                    Not Screened <span class="font-semibold {{ request('screening') == 'unscreened' ? 'text-amber-600' : 'text-gray-900' }}">{{ $stats['unscreened_jobs'] ?? 0 }}</span>
+                </a>
+                <span class="text-gray-300">|</span>
+
                 <!-- Trash -->
                 <a href="{{ request()->fullUrlWithQuery(['trashed' => 'only']) }}"
                    class="text-gray-600 hover:text-red-600 transition-colors whitespace-nowrap {{ request('trashed') == 'only' ? 'text-red-600 font-medium' : '' }}">
@@ -55,6 +92,19 @@
             </div>
         </div>
         <div class="flex flex-wrap items-center gap-2">
+            <!-- ✅ NEW: Screen All Jobs -->
+            <form action="{{ route('employer.jobs.screen-all') }}" method="POST"
+                  onsubmit="return confirm('This will re-score all applications across all your jobs. Continue?');">
+                @csrf
+                <button type="submit"
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-[#ff7543] text-white text-sm font-medium rounded-lg hover:bg-[#e5643a] transition-all duration-200 shadow-sm hover:shadow-md">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                    </svg>
+                    Screen All Jobs
+                </button>
+            </form>
+
             <a href="{{ route('employer.jobs.create') }}"
                class="inline-flex items-center gap-2 px-4 py-2 bg-[#1a237e] text-white text-sm font-medium rounded-lg hover:bg-[#0d1445] transition-all duration-200 shadow-sm hover:shadow-md">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -87,6 +137,16 @@
                     <option value="published" {{ request('status') == 'published' ? 'selected' : '' }}>Published</option>
                     <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Draft</option>
                     <option value="archived" {{ request('status') == 'archived' ? 'selected' : '' }}>Archived</option>
+                </select>
+            </div>
+
+            <!-- ✅ NEW: Filter: Screening -->
+            <div class="w-full sm:w-40">
+                <select name="screening" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:border-[#1a237e] focus:ring-2 focus:ring-[#1a237e]/20 outline-none transition-all">
+                    <option value="">All Screening</option>
+                    <option value="strong"     {{ request('screening') == 'strong'     ? 'selected' : '' }}>Has strong matches</option>
+                    <option value="unscreened" {{ request('screening') == 'unscreened' ? 'selected' : '' }}>Not screened yet</option>
+                    <option value="knocked"    {{ request('screening') == 'knocked'    ? 'selected' : '' }}>Has knockouts</option>
                 </select>
             </div>
 
@@ -137,7 +197,7 @@
     <!-- ===== JOBS TABLE ===== -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="w-full min-w-[800px]">
+            <table class="w-full min-w-[900px]">
                 <thead>
                     <tr class="bg-gray-50 border-b border-gray-200">
                         <th class="px-4 py-3 text-left w-10">
@@ -148,6 +208,8 @@
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Salary</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Applications</th>
+                        <!-- ✅ NEW: Screened column -->
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Screened</th>
                         <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
@@ -254,6 +316,46 @@
                             <p class="text-xs text-gray-400">applications</p>
                         </td>
 
+                        <!-- ✅ NEW: Screened -->
+                        <td class="px-4 py-4 hidden md:table-cell">
+                            @if($job->trashed())
+                                <span class="text-xs text-gray-400">—</span>
+                            @elseif(($job->applications_count ?? 0) === 0)
+                                <span class="text-xs text-gray-400">No applications</span>
+                            @elseif(($job->screened_count ?? 0) === 0)
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    Not screened
+                                </span>
+                            @else
+                                <div class="flex flex-wrap items-center gap-1">
+                                    @if(($job->strong_match_count ?? 0) > 0)
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                            </svg>
+                                            {{ $job->strong_match_count }} Strong
+                                        </span>
+                                    @endif
+                                    @if(($job->knocked_out_count ?? 0) > 0)
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-600 border border-red-200">
+                                            {{ $job->knocked_out_count }} KO
+                                        </span>
+                                    @endif
+                                    @if(($job->strong_match_count ?? 0) === 0 && ($job->knocked_out_count ?? 0) === 0)
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                                            </svg>
+                                            Screened
+                                        </span>
+                                    @endif
+                                </div>
+                            @endif
+                        </td>
+
                         <!-- Actions -->
                         <td class="px-4 py-4 text-right">
                             <div class="flex items-center justify-end gap-1">
@@ -266,7 +368,7 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                                         </svg>
                                     </button>
-                                    
+
                                     <!-- Force Delete Button -->
                                     <button onclick="confirmForceDelete({{ $job->id }})"
                                             class="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all duration-200"
@@ -276,6 +378,18 @@
                                         </svg>
                                     </button>
                                 @else
+                                    <!-- ✅ NEW: Screening Button -->
+                                    <a href="{{ route('employer.jobs.screened', $job->id) }}"
+                                       class="p-1.5 rounded-lg text-gray-400 hover:text-[#ff7543] hover:bg-orange-50 transition-all duration-200 relative"
+                                       title="Screening — rank candidates by score">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                                        </svg>
+                                        @if(($job->strong_match_count ?? 0) > 0)
+                                            <span class="absolute -top-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border border-white"></span>
+                                        @endif
+                                    </a>
+
                                     <!-- View Button -->
                                     <a href="{{ route('employer.jobs.show', $job->id) }}"
                                        class="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
@@ -285,7 +399,7 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                         </svg>
                                     </a>
-                                    
+
                                     <!-- Edit Button -->
                                     <a href="{{ route('employer.jobs.edit', $job->id) }}"
                                        class="p-1.5 rounded-lg text-gray-400 hover:text-amber-600 hover:bg-amber-50 transition-all duration-200"
@@ -294,7 +408,7 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                         </svg>
                                     </a>
-                                    
+
                                     <!-- Duplicate Button -->
                                     <button onclick="confirmDuplicate({{ $job->id }})"
                                             class="p-1.5 rounded-lg text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition-all duration-200"
@@ -303,7 +417,7 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                                         </svg>
                                     </button>
-                                    
+
                                     <!-- Toggle Status Button -->
                                     <button onclick="confirmStatusToggle({{ $job->id }}, '{{ $job->status }}')"
                                             class="p-1.5 rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all duration-200"
@@ -319,7 +433,7 @@
                                             </svg>
                                         @endif
                                     </button>
-                                    
+
                                     <!-- Delete Button -->
                                     <button onclick="confirmDelete({{ $job->id }})"
                                             class="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all duration-200"
@@ -337,30 +451,30 @@
                                     @csrf
                                     @method('DELETE')
                                 </form>
-                                
+
                                 <form id="restore-form-{{ $job->id }}"
                                       action="{{ route('employer.jobs.restore', $job->id) }}"
                                       method="POST" class="hidden">
                                     @csrf
                                     @method('PATCH')
                                 </form>
-                                
+
                                 <form id="force-delete-form-{{ $job->id }}"
                                       action="{{ route('employer.jobs.force-delete', $job->id) }}"
                                       method="POST" class="hidden">
                                     @csrf
                                     @method('DELETE')
                                 </form>
-                                
-                                <form id="toggle-status-form-{{ $job->id }}" 
-                                      action="{{ route('employer.jobs.toggle-status', $job->id) }}" 
+
+                                <form id="toggle-status-form-{{ $job->id }}"
+                                      action="{{ route('employer.jobs.toggle-status', $job->id) }}"
                                       method="POST" class="hidden">
                                     @csrf
                                     @method('PATCH')
                                 </form>
-                                
-                                <form id="duplicate-form-{{ $job->id }}" 
-                                      action="{{ route('employer.jobs.duplicate', $job->id) }}" 
+
+                                <form id="duplicate-form-{{ $job->id }}"
+                                      action="{{ route('employer.jobs.duplicate', $job->id) }}"
                                       method="POST" class="hidden">
                                     @csrf
                                     @method('POST')
@@ -370,7 +484,8 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="px-6 py-12 text-center">
+                        <!-- ✅ UPDATED: colspan 7 → 8 -->
+                        <td colspan="8" class="px-6 py-12 text-center">
                             <div class="flex flex-col items-center">
                                 <svg class="w-12 h-12 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
@@ -482,12 +597,12 @@
     function confirmStatusToggle(id, currentStatus) {
         const action = currentStatus === 'published' ? 'unpublish' : 'publish';
         const title = currentStatus === 'published' ? 'Unpublish Job?' : 'Publish Job?';
-        const text = currentStatus === 'published' 
-            ? 'This job will be removed from public view.' 
+        const text = currentStatus === 'published'
+            ? 'This job will be removed from public view.'
             : 'This job will be published and visible to applicants.';
         const icon = currentStatus === 'published' ? 'warning' : 'success';
         const confirmColor = currentStatus === 'published' ? '#eab308' : '#22c55e';
-        
+
         Swal.fire({
             title: title,
             text: text,
@@ -546,7 +661,7 @@
 
         const ids = Array.from(selected).map(cb => cb.value);
         const count = selected.length;
-        
+
         // Confirmation message based on action
         let title, text, icon, confirmText;
         switch(action) {
@@ -601,10 +716,7 @@
             cancelButtonText: 'Cancel',
             reverseButtons: true,
             preConfirm: () => {
-                // Determine which endpoint to use
                 let url = '';
-                let method = 'POST';
-                
                 switch(action) {
                     case 'delete':
                         url = '{{ route("employer.jobs.bulk-delete") }}';
@@ -616,17 +728,15 @@
                         url = '{{ route("employer.jobs.bulk-force-delete") }}';
                         break;
                     default:
-                        // For status updates, use the status update endpoint
                         url = '{{ route("employer.jobs.bulk-status-update") }}';
                         break;
                 }
 
-                // For status updates, we need to send the status
                 const data = {
                     ids: ids,
                     _token: '{{ csrf_token() }}'
                 };
-                
+
                 if (['published', 'draft', 'archived'].includes(action)) {
                     data.status = action;
                 }

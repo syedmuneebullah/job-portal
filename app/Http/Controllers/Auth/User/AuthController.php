@@ -8,6 +8,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Password as PasswordRule;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -151,7 +155,7 @@ class AuthController extends Controller
     } elseif ($user->user_type === 'recruiter') {
         return redirect()->route('recruiter.dashboard');
     } elseif ($user->user_type === 'job_seeker') {
-        return redirect()->route('candidate.dashboard');
+        return redirect()->intended(route('candidate.dashboard'));
     } else {
         return redirect()->route('user.home');
     }
@@ -307,5 +311,96 @@ class AuthController extends Controller
             'success' => true,
             'message' => 'Password changed successfully'
         ]);
+    }
+
+    /**
+     * Show the "forgot password" form.
+     */
+    public function showForgotForm()
+    {
+        return view('auth.user.forgot-password');
+    }
+
+    /**
+     * Send a reset link to the given email.
+     */
+    public function sendResetLink(Request $request)
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+        ], [
+            'email.required' => 'Please enter your email address.',
+            'email.email'    => 'Please enter a valid email address.',
+        ]);
+
+        $status = Password::sendResetLink(
+            $request->only('email')
+        );
+
+        if ($status === Password::RESET_LINK_SENT) {
+            return back()->with('status', 'We have emailed your password reset link! Please check your inbox.');
+        }
+
+        return back()
+            ->withInput($request->only('email'))
+            ->withErrors(['email' => __($status)]);
+    }
+
+    /**
+     * Show the reset password form (from email link).
+     */
+    public function showResetForm(Request $request, $token = null)
+    {
+        return view('auth.user.reset-password', [
+            'token' => $token,
+            'email' => $request->query('email'),
+        ]);
+    }
+
+    /**
+     * Handle the password reset submission.
+     */
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token'    => ['required'],
+            'email'    => ['required', 'email'],
+            'password' => [
+                'required',
+                'string',
+                'confirmed',
+                PasswordRule::min(8)
+                    ->letters()
+                    ->mixedCase()
+                    ->numbers()
+                    ->symbols(),
+            ],
+        ], [
+            'email.required'     => 'Please enter your email address.',
+            'password.required'  => 'Please enter a new password.',
+            'password.confirmed' => 'The password confirmation does not match.',
+        ]);
+
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function (User $user, string $password) {
+                $user->forceFill([
+                    'password'       => Hash::make($password),
+                    'remember_token' => Str::random(60),
+                ])->save();
+
+                event(new PasswordReset($user));
+            }
+        );
+
+        if ($status === Password::PASSWORD_RESET) {
+            return redirect()
+                ->route('auth.user.login')
+                ->with('status', 'Your password has been reset successfully! You can now log in.');
+        }
+
+        return back()
+            ->withInput($request->only('email'))
+            ->withErrors(['email' => __($status)]);
     }
 }

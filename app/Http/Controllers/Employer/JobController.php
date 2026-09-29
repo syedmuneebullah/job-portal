@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Employer;
 
 use App\Http\Controllers\Controller;
+use App\Services\ScreeningService;
 use App\Models\Application;
 use App\Models\JobPost;
 use App\Models\Employer;
@@ -19,179 +20,272 @@ class JobController extends Controller
      * Display a listing of job posts with search, filters, and pagination
      */
     public function index(Request $request)
-    {
-        // Get the authenticated admin user ID
-        $authUserId = auth()->id();
+{
+    // Get the authenticated admin user ID
+    $authUserId = auth()->id();
 
-        // Find the employer associated with this user
-        $employer = Employer::where('user_id', $authUserId)->first();
+    // Find the employer associated with this user
+    $employer = Employer::where('user_id', $authUserId)->first();
 
-        // Get the employer ID if found, otherwise null
-        $employerId = $employer ? $employer->id : null;
+    // Get the employer ID if found, otherwise null
+    $employerId = $employer ? $employer->id : null;
 
-        // Base query with eager loading
-        $query = JobPost::query()
-            ->with(['employer' => function($q) {
+    // Base query with eager loading + screening counts
+    $query = JobPost::query()
+        ->with([
+            'employer' => function ($q) {
                 $q->select('id', 'company_name', 'email');
-            }, 'recruiter' => function($q) {
+            },
+            'recruiter' => function ($q) {
                 $q->select('id', 'first_name', 'last_name', 'email');
-            }])
-            ->select([
-                'id',
-                'title',
-                'department',
-                'location',
-                'work_type',
-                'employment_type',
-                'salary_min',
-                'salary_max',
-                'currency',
-                'employer_id',
-                'recruiter_id',
-                'visibility',
-                'status',
-                'is_ai_generated',
-                'published_at',
-                'closing_at',
-                'created_at',
-                'updated_at'
-            ]);
-
-        // Filter jobs based on employer ID found from user_id
-        if ($employerId) {
-            $query->where('employer_id', $employerId);
-        } else {
-            // If user is not associated with any employer, return empty results
-            $query->whereRaw('1 = 0'); // Returns no results
-        }
-
-        // Search functionality
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'LIKE', "%{$search}%")
-                  ->orWhere('department', 'LIKE', "%{$search}%")
-                  ->orWhere('location', 'LIKE', "%{$search}%")
-                  ->orWhere('description', 'LIKE', "%{$search}%")
-                  ->orWhereHas('employer', function($e) use ($search) {
-                      $e->where('company_name', 'LIKE', "%{$search}%");
-                  });
-            });
-        }
-
-        // Filter by status
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        // Filter by work type
-        if ($request->filled('work_type')) {
-            $query->where('work_type', $request->work_type);
-        }
-
-        // Filter by employment type
-        if ($request->filled('employment_type')) {
-            $query->where('employment_type', $request->employment_type);
-        }
-
-        // Filter by visibility
-        if ($request->filled('visibility')) {
-            $query->where('visibility', $request->visibility);
-        }
-
-        // Filter by employer
-        if ($request->filled('employer_id')) {
-            $query->where('employer_id', $request->employer_id);
-        }
-
-        // Filter by date range
-        if ($request->filled('from_date')) {
-            $query->whereDate('created_at', '>=', $request->from_date);
-        }
-        if ($request->filled('to_date')) {
-            $query->whereDate('created_at', '<=', $request->to_date);
-        }
-
-        // Filter by AI generated
-        if ($request->filled('is_ai_generated')) {
-            $query->where('is_ai_generated', $request->is_ai_generated === 'true');
-        }
-
-        // Show trashed records if requested
-        if ($request->filled('trashed')) {
-            if ($request->trashed === 'only') {
-                $query->onlyTrashed();
-            } elseif ($request->trashed === 'with') {
-                $query->withTrashed();
             }
-        } else {
-            $query->whereNull('deleted_at');
-        }
+        ])
+        // ✅ NEW: Count total applications + screening breakdown
+        ->withCount([
+            'applications',
 
-        // Sort by
-        $sortBy = $request->sort_by ?? 'created_at';
-        $sortOrder = $request->sort_order ?? 'desc';
+            // Strong/good matches that aren't auto-knocked-out
+            'applications as strong_match_count' => function ($q) {
+                $q->where('auto_knocked_out', false)
+                  ->whereIn('screening_band', ['strong', 'good']);
+            },
 
-        $allowedSorts = ['id', 'title', 'status', 'work_type', 'employment_type', 'published_at', 'closing_at', 'created_at', 'updated_at', 'deleted_at'];
-        if (in_array($sortBy, $allowedSorts)) {
-            $query->orderBy($sortBy, $sortOrder);
-        }
+            // Auto-knocked-out applications
+            'applications as knocked_out_count' => function ($q) {
+                $q->where('auto_knocked_out', true);
+            },
 
-        // Paginate
-        $perPage = $request->per_page ?? 10;
-        $jobs = $query->paginate($perPage);
+            // Applications that have been screened at least once
+            'applications as screened_count' => function ($q) {
+                $q->whereNotNull('screened_at');
+            },
+        ])
+        ->select([
+            'id',
+            'title',
+            'department',
+            'location',
+            'work_type',
+            'employment_type',
+            'salary_min',
+            'salary_max',
+            'currency',
+            'employer_id',
+            'recruiter_id',
+            'visibility',
+            'status',
+            'is_ai_generated',
+            'published_at',
+            'closing_at',
+            'created_at',
+            'updated_at'
+        ]);
 
-        // Get statistics (filtered for the employer)
-        $stats = [
-            'total' => $employerId ? JobPost::where('employer_id', $employerId)->count() : 0,
-            'published' => $employerId ? JobPost::where('employer_id', $employerId)->where('status', 'published')->count() : 0,
-            'draft' => $employerId ? JobPost::where('employer_id', $employerId)->where('status', 'draft')->count() : 0,
-            'archived' => $employerId ? JobPost::where('employer_id', $employerId)->where('status', 'archived')->count() : 0,
-            'active' => $employerId ? JobPost::where('employer_id', $employerId)->active()->count() : 0,
-            'public' => $employerId ? JobPost::where('employer_id', $employerId)->where('visibility', 'public')->count() : 0,
-            'private' => $employerId ? JobPost::where('employer_id', $employerId)->where('visibility', 'private')->count() : 0,
-            'ai_generated' => $employerId ? JobPost::where('employer_id', $employerId)->where('is_ai_generated', true)->count() : 0,
-            'trashed' => $employerId ? JobPost::where('employer_id', $employerId)->onlyTrashed()->count() : 0,
-        ];
-
-        // Get employers for filter (only the admin's employer)
-        if ($employerId) {
-            $employers = Employer::where('id', $employerId)->select('id', 'company_name')->get();
-        } else {
-            $employers = collect();
-        }
-
-        // Get unique work types (filtered by employer)
-        if ($employerId) {
-            $workTypes = JobPost::where('employer_id', $employerId)
-                ->select('work_type')
-                ->distinct()
-                ->whereNotNull('work_type')
-                ->pluck('work_type');
-
-            $employmentTypes = JobPost::where('employer_id', $employerId)
-                ->select('employment_type')
-                ->distinct()
-                ->whereNotNull('employment_type')
-                ->pluck('employment_type');
-        } else {
-            $workTypes = collect();
-            $employmentTypes = collect();
-        }
-
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'data' => $jobs,
-                'stats' => $stats,
-                'employers' => $employers,
-                'work_types' => $workTypes,
-                'employment_types' => $employmentTypes
-            ]);
-        }
-
-        return view('employer.pages.jobs.index', compact('jobs', 'stats', 'employers', 'workTypes', 'employmentTypes'));
+    // Filter jobs based on employer ID found from user_id
+    if ($employerId) {
+        $query->where('employer_id', $employerId);
+    } else {
+        // If user is not associated with any employer, return empty results
+        $query->whereRaw('1 = 0');
     }
+
+    // Search functionality
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function ($q) use ($search) {
+            $q->where('title', 'LIKE', "%{$search}%")
+              ->orWhere('department', 'LIKE', "%{$search}%")
+              ->orWhere('location', 'LIKE', "%{$search}%")
+              ->orWhere('description', 'LIKE', "%{$search}%")
+              ->orWhereHas('employer', function ($e) use ($search) {
+                  $e->where('company_name', 'LIKE', "%{$search}%");
+              });
+        });
+    }
+
+    // Filter by status
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
+
+    // Filter by work type
+    if ($request->filled('work_type')) {
+        $query->where('work_type', $request->work_type);
+    }
+
+    // Filter by employment type
+    if ($request->filled('employment_type')) {
+        $query->where('employment_type', $request->employment_type);
+    }
+
+    // Filter by visibility
+    if ($request->filled('visibility')) {
+        $query->where('visibility', $request->visibility);
+    }
+
+    // Filter by employer
+    if ($request->filled('employer_id')) {
+        $query->where('employer_id', $request->employer_id);
+    }
+
+    // ✅ NEW: Filter by screening status
+    if ($request->filled('screening')) {
+        switch ($request->screening) {
+            case 'strong':
+                // Jobs with at least one strong/good match
+                $query->whereHas('applications', function ($q) {
+                    $q->where('auto_knocked_out', false)
+                      ->whereIn('screening_band', ['strong', 'good']);
+                });
+                break;
+            case 'unscreened':
+                // Jobs with applications but none screened yet
+                $query->whereHas('applications')
+                      ->whereDoesntHave('applications', function ($q) {
+                          $q->whereNotNull('screened_at');
+                      });
+                break;
+            case 'knocked':
+                // Jobs with at least one knocked-out applicant
+                $query->whereHas('applications', function ($q) {
+                    $q->where('auto_knocked_out', true);
+                });
+                break;
+        }
+    }
+
+    // Filter by date range
+    if ($request->filled('from_date')) {
+        $query->whereDate('created_at', '>=', $request->from_date);
+    }
+    if ($request->filled('to_date')) {
+        $query->whereDate('created_at', '<=', $request->to_date);
+    }
+
+    // Filter by AI generated
+    if ($request->filled('is_ai_generated')) {
+        $query->where('is_ai_generated', $request->is_ai_generated === 'true');
+    }
+
+    // Show trashed records if requested
+    if ($request->filled('trashed')) {
+        if ($request->trashed === 'only') {
+            $query->onlyTrashed();
+        } elseif ($request->trashed === 'with') {
+            $query->withTrashed();
+        }
+    } else {
+        $query->whereNull('deleted_at');
+    }
+
+    // Sort by
+    $sortBy = $request->sort_by ?? 'created_at';
+    $sortOrder = $request->sort_order ?? 'desc';
+
+    $allowedSorts = [
+        'id', 'title', 'status', 'work_type', 'employment_type',
+        'published_at', 'closing_at', 'created_at', 'updated_at', 'deleted_at',
+        'applications_count',        // ✅ allow sorting by number of applications
+        'strong_match_count',        // ✅ allow sorting by strong matches
+        'knocked_out_count',         // ✅ allow sorting by knockouts
+    ];
+    if (in_array($sortBy, $allowedSorts)) {
+        $query->orderBy($sortBy, $sortOrder);
+    }
+
+    // Paginate
+    $perPage = $request->per_page ?? 10;
+    $jobs = $query->paginate($perPage)->withQueryString();
+
+    // Get statistics (filtered for the employer)
+    $stats = [
+        'total'         => $employerId ? JobPost::where('employer_id', $employerId)->count() : 0,
+        'published'     => $employerId ? JobPost::where('employer_id', $employerId)->where('status', 'published')->count() : 0,
+        'draft'         => $employerId ? JobPost::where('employer_id', $employerId)->where('status', 'draft')->count() : 0,
+        'archived'      => $employerId ? JobPost::where('employer_id', $employerId)->where('status', 'archived')->count() : 0,
+        'active'        => $employerId ? JobPost::where('employer_id', $employerId)->active()->count() : 0,
+        'public'        => $employerId ? JobPost::where('employer_id', $employerId)->where('visibility', 'public')->count() : 0,
+        'private'       => $employerId ? JobPost::where('employer_id', $employerId)->where('visibility', 'private')->count() : 0,
+        'ai_generated'  => $employerId ? JobPost::where('employer_id', $employerId)->where('is_ai_generated', true)->count() : 0,
+        'trashed'       => $employerId ? JobPost::where('employer_id', $employerId)->onlyTrashed()->count() : 0,
+
+        // ✅ NEW: Screening-related stats
+        'with_strong_matches' => $employerId
+            ? JobPost::where('employer_id', $employerId)
+                ->whereHas('applications', function ($q) {
+                    $q->where('auto_knocked_out', false)
+                      ->whereIn('screening_band', ['strong', 'good']);
+                })
+                ->count()
+            : 0,
+
+        'unscreened_jobs' => $employerId
+            ? JobPost::where('employer_id', $employerId)
+                ->whereHas('applications')
+                ->whereDoesntHave('applications', function ($q) {
+                    $q->whereNotNull('screened_at');
+                })
+                ->count()
+            : 0,
+
+        'total_strong_matches' => $employerId
+            ? \App\Models\Application::whereHas('jobPost', function ($q) use ($employerId) {
+                    $q->where('employer_id', $employerId);
+                })
+                ->where('auto_knocked_out', false)
+                ->whereIn('screening_band', ['strong', 'good'])
+                ->count()
+            : 0,
+
+        'total_knocked_out' => $employerId
+            ? \App\Models\Application::whereHas('jobPost', function ($q) use ($employerId) {
+                    $q->where('employer_id', $employerId);
+                })
+                ->where('auto_knocked_out', true)
+                ->count()
+            : 0,
+    ];
+
+    // Get employers for filter (only the admin's employer)
+    if ($employerId) {
+        $employers = Employer::where('id', $employerId)->select('id', 'company_name')->get();
+    } else {
+        $employers = collect();
+    }
+
+    // Get unique work types (filtered by employer)
+    if ($employerId) {
+        $workTypes = JobPost::where('employer_id', $employerId)
+            ->select('work_type')
+            ->distinct()
+            ->whereNotNull('work_type')
+            ->pluck('work_type');
+
+        $employmentTypes = JobPost::where('employer_id', $employerId)
+            ->select('employment_type')
+            ->distinct()
+            ->whereNotNull('employment_type')
+            ->pluck('employment_type');
+    } else {
+        $workTypes = collect();
+        $employmentTypes = collect();
+    }
+
+    if ($request->ajax() || $request->wantsJson()) {
+        return response()->json([
+            'success'          => true,
+            'data'             => $jobs,
+            'stats'            => $stats,
+            'employers'        => $employers,
+            'work_types'       => $workTypes,
+            'employment_types' => $employmentTypes
+        ]);
+    }
+
+    return view('employer.pages.jobs.index', compact(
+        'jobs', 'stats', 'employers', 'workTypes', 'employmentTypes'
+    ));
+}
 
     /**
      * Show the form for creating a new job post
@@ -242,6 +336,9 @@ class JobController extends Controller
         // Set default values
         $validated['is_ai_generated'] = $validated['is_ai_generated'] ?? false;
         $validated['currency'] = $validated['currency'] ?? 'USD';
+
+        $validated['screening_enabled'] = $request->boolean('screening_enabled');
+        $validated['knockout_rules']    = $request->input('knockout_rules', []);
 
         // Generate slug
         $validated['slug'] = Str::slug($validated['title']) . '-' . Str::random(6);
@@ -430,6 +527,9 @@ class JobController extends Controller
         } else {
             $validated['preferred_skills'] = json_encode([]);
         }
+
+        $validated['screening_enabled'] = $request->boolean('screening_enabled');
+        $validated['knockout_rules']    = $request->input('knockout_rules', []);
 
         // Extract questions and deleted IDs
         $questionsData = $validated['questions'] ?? [];
@@ -1500,4 +1600,96 @@ class JobController extends Controller
             'data' => $stats
         ]);
     }
+
+     /**
+     * Screen all applications across every job for this employer.
+     */
+    public function screenAllJobs(\App\Services\ScreeningService $service)
+    {
+        $employerId = auth()->user()->employer?->id;
+
+        if (!$employerId) {
+            return back()->with('error', 'No employer profile linked to your account.');
+        }
+
+        $jobs = \App\Models\JobPost::where('employer_id', $employerId)
+            ->where('screening_enabled', true)
+            ->get();
+
+        if ($jobs->isEmpty()) {
+            return back()->with('error', 'No jobs found with screening enabled.');
+        }
+
+        $total = 0;
+        foreach ($jobs as $job) {
+            $total += $service->screenJob($job);
+        }
+
+        return back()->with('success', "Screened {$total} applications across {$jobs->count()} job(s).");
+    }
+
+    /**
+ * Screened applications for a specific job.
+ */
+public function screenedApplications(Request $request, $jobId)
+{
+    $job = JobPost::where('employer_id', auth()->user()->employer->id)
+        ->findOrFail($jobId);
+
+    $query = Application::with(['applicant.applicantProfile'])
+        ->where('job_post_id', $job->id);
+
+    // Filter by band
+    if ($request->filled('band')) {
+        $query->where('screening_band', $request->band);
+    }
+
+    // Hide knocked-out by default
+    if (!$request->boolean('show_knocked')) {
+        $query->where('auto_knocked_out', false);
+    }
+
+    // Search by name/email
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->whereHas('applicant', function ($q) use ($search) {
+            $q->where('first_name', 'like', "%{$search}%")
+              ->orWhere('last_name', 'like', "%{$search}%")
+              ->orWhere('email', 'like', "%{$search}%");
+        });
+    }
+
+    // Order by score desc
+    $applications = $query->orderByDesc('screening_score')
+        ->orderByDesc('created_at')
+        ->paginate(20)
+        ->withQueryString();
+
+    // Band counts
+    $bandCounts = Application::where('job_post_id', $job->id)
+        ->selectRaw('screening_band, count(*) as count')
+        ->groupBy('screening_band')
+        ->pluck('count', 'screening_band');
+
+    $knockedCount = Application::where('job_post_id', $job->id)
+        ->where('auto_knocked_out', true)
+        ->count();
+
+    return view('employer.pages.jobs.screened-applications', compact(
+        'job', 'applications', 'bandCounts', 'knockedCount'
+    ));
+}
+
+/**
+ * Re-score all applications for a job.
+ */
+public function rescreenJob($jobId, ScreeningService $service)
+{
+    $job = JobPost::where('employer_id', auth()->user()->employer->id)
+        ->findOrFail($jobId);
+
+    $count = $service->screenJob($job);
+
+    return back()->with('success', "Re-screened {$count} applications.");
+}
 }

@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\CvTemplateController;
 use App\Http\Controllers\Admin\JobController as AdminJobController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Employer\DashboardController as EmployerDashboard;
+use App\Http\Controllers\Employer\ProfileController as EmployerProfile;
 use App\Http\Controllers\Employer\JobController as EmployerJob;
 use App\Http\Controllers\Employer\InterviewController as EmployerInterviewed;
 use App\Http\Controllers\JobSeeker\DashboardController as CandidateDashboard;
@@ -66,6 +67,14 @@ Route::prefix('auth')->name('auth.')->group(function () {
     Route::get('login', [AuthController::class, 'loginview'])->name('user.login');
     Route::post('login/validate', [AuthController::class, 'login'])->name('user.login.validate');
     Route::get('logout', [AuthController::class, 'logout'])->name('user.logout');
+
+     // Forgot password
+    Route::get('forgot-password',  [AuthController::class, 'showForgotForm'])->name('password.request');
+    Route::post('forgot-password', [AuthController::class, 'sendResetLink'])->name('password.email');
+
+    // Reset password (link from email)
+    Route::get('reset-password/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
+    Route::post('reset-password',        [AuthController::class, 'resetPassword'])->name('password.update');
 });
 
 Route::get('login', function() {
@@ -139,6 +148,17 @@ Route::middleware(['auth:sanctum'])->prefix('employer')->name('employer.')->grou
     // Dashboard
     Route::get('/dashboard', [EmployerDashboard::class, 'dashboard'])->name('dashboard');
 
+    // COMPANY PROFILE
+    // ============================================================
+    Route::get('/profile',        [EmployerProfile::class, 'show'])->name('profile');
+    Route::get('/profile/edit',   [EmployerProfile::class, 'edit'])->name('profile.edit');
+    Route::put('/profile/update', [EmployerProfile::class, 'update'])->name('profile.update');
+    Route::delete('/profile/logo', [EmployerProfile::class, 'removeLogo'])->name('profile.logo.remove');
+
+    //change password
+    Route::get('/profile/change-password', [EmployerProfile::class, 'showChangePassword'])->name('profile.change-password');
+    Route::put('/profile/change-password', [EmployerProfile::class, 'updatePassword'])->name('profile.change-password.update');
+
     // ============================================================
     // JOB MANAGEMENT ROUTES
     // ============================================================
@@ -172,6 +192,13 @@ Route::middleware(['auth:sanctum'])->prefix('employer')->name('employer.')->grou
         // Export & Statistics
         Route::get('/export', [EmployerJob::class, 'export'])->name('export');
         Route::get('/statistics', [EmployerJob::class, 'statistics'])->name('statistics');
+
+        Route::post('/screen-all', [EmployerJob::class, 'screenAllJobs'])->name('screen-all');
+
+        Route::get('{id}/screened', [EmployerJob::class, 'screenedApplications'])
+            ->name('screened');
+        Route::post('{id}/rescreen', [EmployerJob::class, 'rescreenJob'])
+            ->name('rescreen');
     });
 
     // ============================================================
@@ -251,7 +278,7 @@ Route::middleware(['auth:sanctum'])->prefix('employer')->name('employer.')->grou
 // ============================================================
 // JOB SEEKER ROUTES (PROTECTED)
 // ============================================================
-Route::middleware(['auth:sanctum'])->prefix('candidate')->name('candidate.')->group(function () {
+Route::middleware(['auth'])->prefix('candidate')->name('candidate.')->group(function () {
     // Dashboard
     Route::get('/dashboard', [CandidateDashboard::class, 'dashboard'])->name('dashboard');
 
@@ -259,6 +286,10 @@ Route::middleware(['auth:sanctum'])->prefix('candidate')->name('candidate.')->gr
     Route::get('/profile', [ProfileController::class, 'profile'])->name('profile');
     Route::get('/profile/edit', [ProfileController::class, 'EditProfile'])->name('profile.edit');
     Route::put('/profile/update', [ProfileController::class, 'UpdateProfile'])->name('profile.update');
+    
+    //change password
+    Route::get('/profile/change-password', [ProfileController::class, 'showChangePassword'])->name('profile.change-password');
+    Route::put('/profile/change-password', [ProfileController::class, 'updatePassword'])->name('profile.change-password.update');
 
     // Education
     Route::post('/education', [ProfileController::class, 'storeEducation'])->name('education.store');

@@ -24,60 +24,7 @@
                         class="bg-transparent border-none outline-none text-sm px-2 w-48 focus:w-64 transition-all duration-300">
             </div>
             
-            <!-- Notification Bell -->
-            <div class="relative">
-                <button id="notificationBtn" class="p-2 rounded-lg hover:bg-gray-100 transition-all duration-200 text-gray-600 hover:text-[#1a237e] relative">
-                    <i class="fas fa-bell text-xl"></i>
-                    <span class="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold badge-pulse">
-                        5
-                    </span>
-                </button>
-                
-                <!-- Notification Dropdown -->
-                <div id="notificationDropdown" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden dropdown-enter">
-                    <div class="p-4 border-b border-gray-100">
-                        <div class="flex items-center justify-between">
-                            <h3 class="font-semibold text-gray-800">Notifications</h3>
-                            <button class="text-xs text-[#FF7543] hover:underline">Mark all read</button>
-                        </div>
-                    </div>
-                    <div class="max-h-80 overflow-y-auto">
-                        <a href="#" class="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50">
-                            <div class="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                                <i class="fas fa-user-plus text-blue-600 text-sm"></i>
-                            </div>
-                            <div>
-                                <p class="text-sm font-medium text-gray-800">New user registered</p>
-                                <p class="text-xs text-gray-500">John Doe created an account</p>
-                                <p class="text-[10px] text-gray-400 mt-1">5 min ago</p>
-                            </div>
-                        </a>
-                        <a href="#" class="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50">
-                            <div class="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                                <i class="fas fa-check-circle text-green-600 text-sm"></i>
-                            </div>
-                            <div>
-                                <p class="text-sm font-medium text-gray-800">Application approved</p>
-                                <p class="text-xs text-gray-500">Developer position approved</p>
-                                <p class="text-[10px] text-gray-400 mt-1">1 hour ago</p>
-                            </div>
-                        </a>
-                        <a href="#" class="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition-colors">
-                            <div class="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-                                <i class="fas fa-exclamation-triangle text-red-600 text-sm"></i>
-                            </div>
-                            <div>
-                                <p class="text-sm font-medium text-gray-800">Payment failed</p>
-                                <p class="text-xs text-gray-500">Invoice #1234 payment failed</p>
-                                <p class="text-[10px] text-gray-400 mt-1">2 hours ago</p>
-                            </div>
-                        </a>
-                    </div>
-                    <div class="p-3 border-t border-gray-100 text-center">
-                        <a href="#" class="text-sm text-[#1a237e] font-medium hover:underline">View all notifications</a>
-                    </div>
-                </div>
-            </div>
+            
             
             <!-- Profile Dropdown -->
             <div class="relative">
@@ -96,18 +43,7 @@
                         <p class="text-xs text-gray-500">admin@jobgenie.com</p>
                     </div>
                     <div class="py-1">
-                        <a href="#" class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors text-sm text-gray-700">
-                            <i class="fas fa-user-circle text-gray-400 w-5"></i>
-                            Edit Profile
-                        </a>
-                        <a href="#" class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors text-sm text-gray-700">
-                            <i class="fas fa-key text-gray-400 w-5"></i>
-                            Change Password
-                        </a>
-                        <a href="#" class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors text-sm text-gray-700">
-                            <i class="fas fa-cog text-gray-400 w-5"></i>
-                            Settings
-                        </a>
+                        
                         <hr class="my-1">
                         <a href="{{route('auth.user.logout')}}" class="flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 transition-colors text-sm text-red-600">
                             <i class="fas fa-sign-out-alt text-red-400 w-5"></i>

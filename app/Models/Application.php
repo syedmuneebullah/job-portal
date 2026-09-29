@@ -28,6 +28,12 @@ class Application extends Model
         'rejected_at',
         'scheduled_at',
         'rejection_reason',
+        'screening_score',
+        'screening_band',
+        'screening_breakdown',
+        'auto_knocked_out',
+        'knockout_reason',
+        'screened_at',
     ];
 
     protected $casts = [
@@ -44,6 +50,10 @@ class Application extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'scheduled_at' => 'datetime',
+        'screening_score'     => 'decimal:2',
+        'screening_breakdown' => 'array',
+        'auto_knocked_out'    => 'boolean',
+        'screened_at'         => 'datetime',
     ];
 
     // Status constants
@@ -66,6 +76,11 @@ class Application extends Model
         self::STATUS_REJECTED,
         self::STATUS_WITHDRAWN,
     ];
+
+    const BAND_STRONG  = 'strong';
+    const BAND_GOOD    = 'good';
+    const BAND_AVERAGE = 'average';
+    const BAND_WEAK    = 'weak';
 
     // Relationships
     public function jobPost()
@@ -179,5 +194,53 @@ class Application extends Model
     public function scheduleInterview()
     {
         return $this->hasOne(ScheduleInterview::class);
+    }
+
+    public function scopeStrongMatch($query)
+    {
+        return $query->where('screening_band', self::BAND_STRONG);
+    }
+
+    public function scopeGoodMatch($query)
+    {
+        return $query->where('screening_band', self::BAND_GOOD);
+    }
+
+    public function scopeNotKnockedOut($query)
+    {
+        return $query->where('auto_knocked_out', false);
+    }
+
+    public function scopeRanked($query)
+    {
+        return $query->orderByDesc('screening_score')->orderByDesc('created_at');
+    }
+
+    /**
+     * Human-readable band label.
+     */
+    public function getScreeningBandLabelAttribute(): string
+    {
+        return match ($this->screening_band) {
+            self::BAND_STRONG  => 'Strong Match',
+            self::BAND_GOOD    => 'Good Match',
+            self::BAND_AVERAGE => 'Average',
+            self::BAND_WEAK    => 'Weak Match',
+            default            => 'Not Screened',
+        };
+    }
+
+    /**
+     * Tailwind color classes for the band badge.
+     */
+    public function getScreeningBadgeClassesAttribute(): array
+    {
+        return match ($this->screening_band) {
+            self::BAND_STRONG  => ['bg-emerald-500', 'text-white'],
+            self::BAND_GOOD    => ['bg-blue-500',    'text-white'],
+            self::BAND_AVERAGE => ['bg-amber-500',   'text-white'],
+            self::BAND_WEAK    => ['bg-red-500',     'text-white'],
+            default            => ['bg-gray-300',    'text-gray-700'],
+        };
     }
 }
